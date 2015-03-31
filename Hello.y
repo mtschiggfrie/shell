@@ -3,7 +3,7 @@
 %%
 
 command: 
-         cd filename path exit list copy move remove link makedir transfer transferg changeperm removedir find
+         cd|filename|path|exit|list|copy|move|remove|link|makedir|transfer|transferg|changeperm|removedir|find
         ;
 		
 cd:
@@ -16,7 +16,7 @@ path:
 		PATH	   { printf("PATH ");	}
 		;
 exit:
-		EXIT	   { printf("Goodbye ");	}
+		EXIT	   { printf("Goodbye "); exit(1);	}
 		;
 list:
 		LIST	   { printf("LS ");	}
