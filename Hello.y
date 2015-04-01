@@ -9,54 +9,57 @@
 
 %%
 
+commands:
+		command | commands command
+		;
 command: 
          cd|filename|path|exit|list|copy|move|remove|link|makedir|transfer|transferg|changeperm|removedir|find
         ;
 		
 cd:
-		CD	   { printf("CD\n");	}
+		CD	   { printf("CD ");	}
 		;
 filename:
-		FILENAME	   { printf("FILENAME\n");	}
+		FILENAME	   { printf("FILENAME ");	}
 		;
 path:
-		PATH	   { printf("PATH\n");	}
+		PATH	   { printf("PATH ");	}
 		;
 exit:
-		EXIT	   { printf("Goodbye\n"); exit(0);	}
+		EXIT	   { printf("Goodbye "); exit(0);	}
 		;
 list:
-		LIST	   { printf("LS\n");	}
+		LIST	   { printf("LS ");	}
 		;
 copy:
-		COPY	   { printf("CP\n");	}
+		COPY	   { printf("CP ");	}
 		;	
 move:
-		MOVE	   { printf("MV\n");	}
+		MOVE	   { printf("MV ");	}
 		;	
 remove:
-		REMOVE	   { printf("RM\n");	}
+		REMOVE	   { printf("RM ");	}
 		;	
 link:
-		LINK	   { printf("LN\n");	}
+		LINK	   { printf("LN ");	}
 		;	
 makedir:
-		MAKEDIR	   { printf("MKDIR\n");	}
+		MAKEDIR	   { printf("MKDIR ");	}
 		;	
 transfer:
-		TRANSFER	   { printf("CHOWN\n");	}
+		TRANSFER	   { printf("CHOWN ");	}
 		;	
 transferg:
-		TRANSFERG	   { printf("CHGRP\n");	}
+		TRANSFERG	   { printf("CHGRP ");	}
 		;	
 changeperm:
-		CHANGEPERM	   { printf("CHMOD\n");	}
+		CHANGEPERM	   { printf("CHMOD ");	}
 		;	
 removedir:
-		REMOVEDIR	   { printf("RMDIR\n");	}
+		REMOVEDIR	   { printf("RMDIR ");	}
 		;	
 find:
-		FIND	   { printf("FIND\n");	}
+		FIND	   { printf("FIND ");	}
 		;	
 																				
 		
