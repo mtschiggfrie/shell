@@ -8,13 +8,14 @@
 %token OTHER_TOK INTO_TOK FROM_TOK PARAM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK
 
 %%
-
+//name always remains just the cmd, so
 command:
 		name '\n'	 				{ ;}//gets the name after reading all entered tokens
 		;
 
 name:
 		OTHER_TOK					{ ;}//initial OTHER_TOK will be the cmd, next args
+		| name PIPE_TOK name		{ ;}//name reduces to cmd_name so concatenate and store in yylval using some delimiter. Also increment name counter and push following args to correct argstack.
 		| name param 				{ ;}//add in params
 		| name OTHER_TOK			{ ;}//push arg onto argstack, set back to name
 		| name redirect 			{ ;}//create redirects
