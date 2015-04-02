@@ -2,16 +2,44 @@
 
 README will organize the current status of project/ideas/non-immediate questions for each other. We can alter/expand the blueprint to keep track of everything or ignore it if we find it unhelpful.
 
-##Current Questions:
-Need to decide on tokens. Tokens we will need for sure:
-\> - INTO or GREATER
-< - FROM or LESS
-| - PIPE
-& - AMPER
+##Blueprint
+TOKENS:
+> \> = INTO_TOK
 
-Bigger issue is to decide how to tokenize strings/names. yylval being an int is nice for the single character tokens but leaves the issue of how to hold the value "cd". My idea is to follow the book's approach, transforming each string/name into its own token OTHER. (e.g. echo test > foo -> OTHER OTHER INTO OTHER, echo "test > foo" -> OTHER OTHER) Then we can parse each OTHER token again to deconstruct the quoted section into its component tokens (not sure how we can accomplish this because of yyparse()). We can set the corresponding yylval then to char * instead, ie. INTO's corresponding yyval is ">" always but OTHER = "cd" or "ls" (but hopefully not OTHER = "test > foo" as that will have been reduced to OTHER INTO OTHER)
+> < = FROM_TOK
 
-My main question is what constitutes simple commands, are they the commands where I/O redirect doesn't make sense (ls, cd, exit, rest of the list)? I believe this is the right reasoning as these commands have different syntax, and thus grammar, from eachother. In this case we would have the tokens as already defined plus the OTHER tokens for strings and commands following the cmd [args]* [|cmd ...].... format.
+> | = PIPE_TOK
+
+> & = BACKGROUND_TOK
+
+> 2 = STDERR_TOK
+
+> &1 = STDOUT_TOK
+
+> CMD or ARG or FILENAME or "..."='...' = OTHER_TOK
+
+> possibly tokens for the built-in commands (setenv, printenv, unsetenv, cd, alias, unalias, bye)
+
+ASSUMPTION and THOUGHTS:
+> First OTHER_TOK always CMD. Same for OTHER_TOK after a PIPE_TOK
+
+> The expression can be reduced in any order as the shell executes the command all at once.
+
+> "...." tokens will need to be reduced into their component tokens somehow for the grammar to be unambiguous.
+
+> If we accomplish that then any OTHER_TOK + OTHER_TOK will be arg + arg or cmd + arg, which is still uniquely identified.
+
+> yylval will then be a string always (">', 'echo', '2', 'test'). 
+
+> Because we know the string is going to be either a cmd or an arg or a '>' we can build a table or some other mapping for the cmds. The args can be pushed to a stack and popped at execution. Filenames are easy, nothing needs to be done there. 
+
+> Whitespace will need to be trimmed from the yylval in lex. Metacharacter recognition and handling will also require Lex. 
+
+> Yacc will manage the reduction of the tokens and construction of the commands to be executed, so it will be handling the syscalls.
+
+> Wild-Carding looks like its Lex work
+
+> None of this has taken into account aliasing.
 
 ##Current Project Status:
 1. Outline complete
