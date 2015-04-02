@@ -20,6 +20,8 @@ TOKENS:
 
 > possibly tokens for the built-in commands (setenv, printenv, unsetenv, cd, alias, unalias, bye)
 
+> possibly -r, -f, ... = PARAM_TOK
+
 ASSUMPTION and THOUGHTS:
 > First OTHER_TOK always CMD. Same for OTHER_TOK after a PIPE_TOK
 
@@ -40,6 +42,8 @@ ASSUMPTION and THOUGHTS:
 > Wild-Carding looks like its Lex work
 
 > None of this has taken into account aliasing.
+
+> PARAM_TOK easily handled as preceding OTHER_TOK is a cmd. 
 
 ##Current Project Status:
 1. Outline complete
