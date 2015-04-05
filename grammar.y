@@ -7,7 +7,6 @@
 
 	void setup_table(char * cmd_name){}
 	void clear_table(){}
-	void bye(){printf("found bye");}
 %}
 
 %token OTHER_TOK INTO_TOK FROM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK DUMMY_TOK
@@ -15,16 +14,11 @@
 %%
 
 command:
-		name '\n'	 				{ clear_table();}//gets the name after reading all entered tokens, executes it
-		|
-		;
-
-name:
 		OTHER_TOK					{ $$ = $1; setup_table($1);}//initial OTHER_TOK will be the cmd, next args
-		| name PIPE_TOK name		{ ;}//name reduces to cmd_name so concatenate and store in yylval using some delimiter. Also increment name counter and push following args to correct argstack.
-		| name OTHER_TOK			{ ;}//push arg onto argstack, set back to name
-		| name redirect 			{ ;}//create redirects
-		| name BACKGROUND_TOK 		{ ;}//run in background
+		| command OTHER_TOK			{ printf("reduced");}//push arg onto argstack, set back to name
+		| command PIPE_TOK command	{ ;}//name reduces to cmd_name so concatenate and store in yylval using some delimiter. Also increment name counter and push following args to correct argstack.
+		| command redirect 			{ ;}//create redirects
+		| command BACKGROUND_TOK 	{ ;}//run in background
 		;
 
 redirect:
@@ -33,11 +27,11 @@ redirect:
 		;
 
 input_redirect:
-		FROM_TOK name				{ ;}
+		FROM_TOK command			{ ;}
 		;
 
 output_redirect:
-		INTO_TOK name				{ ;}
+		INTO_TOK command			{ ;}
 		| INTO_TOK STDOUT_TOK		{ ;}//for redirecting stderr to stdout
 		| INTO_TOK INTO_TOK			{ ;}//redirect and append (change yylval to >>)
 		| STDERR_TOK output_redirect{ ;}
@@ -65,9 +59,9 @@ struct cmdent {
 	int (*cfunc)(int,char*[]);
 };
 
-const struct cmdent cmdtab[] = {
-	{"bye", 	TRUE, 	bye}
-};
+// const struct cmdent cmdtab[] = {
+// 	{"bye", 	TRUE, 	bye}
+// };
 
 // void setup_table(char * cmd_name){
 // 	printf("found bye");

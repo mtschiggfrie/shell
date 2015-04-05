@@ -468,7 +468,9 @@ char *yytext;
 #include <stdlib.h>
 #include "y.tab.h"
 
-#line 472 "lex.yy.c"
+int end_shell = 0;
+
+#line 474 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -655,9 +657,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 8 "lex.l"
+#line 10 "lex.l"
 
-#line 661 "lex.yy.c"
+#line 663 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -742,31 +744,31 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 9 "lex.l"
-{ return OTHER_TOK; }
+#line 11 "lex.l"
+{ end_shell = 1; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 10 "lex.l"
+#line 12 "lex.l"
 { return DUMMY_TOK;  }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 11 "lex.l"
+#line 13 "lex.l"
 { return DUMMY_TOK;  }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 12 "lex.l"
+#line 14 "lex.l"
 {}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 13 "lex.l"
+#line 15 "lex.l"
 ECHO;
 	YY_BREAK
-#line 770 "lex.yy.c"
+#line 772 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1764,7 +1766,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 13 "lex.l"
+#line 15 "lex.l"
 
 
 
@@ -1773,6 +1775,7 @@ int main(void)
 int tok = 1;
     do {
 		tok = yyparse();
+		if(end_shell == 1) break;
     } while (1);
     return 0;
 }
