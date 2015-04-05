@@ -8,8 +8,6 @@
 	typedef enum { FALSE, TRUE } bool;
 	typedef int(*fptr)(int, char*[]);
 
-	/* a_cmd is for non-built-in commands */
-
 	struct a_cmd {
 		char * cmd_name;
 		char * file_out;
