@@ -2,8 +2,6 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 
-	/* Declarations */
-
 	#define YYSTYPE char *
 	typedef enum { FALSE, TRUE } bool;
 	typedef int(*fptr)(int, char*[]);
@@ -43,17 +41,45 @@
 	}
 
 	/*********************************************/
+	/* built-in functions
+	/*********************************************/
+
+	int sh_setenv(int nargs, char * args[]){}
+
+	int sh_printenv(int nargs, char * args[]){}
+
+	int sh_unsetenv(int nargs, char * args[]){}
+
+	int sh_cd(int nargs, char * args[]){}
+
+	int sh_alias(int nargs, char * args[]){}
+
+	int sh_unalias(int nargs, char * args[]){}
+
+	int sh_bye(int nargs, char * args[]){}
+
+	/*********************************************/
 	/*cmdmap - Maps each cmd_name to its proper 
 	function */
 	/*********************************************/
 
 	fptr cmdmap(char * cmd_name){
-		fptr cfunc;
-		if(cmd_name == "cd") return chdir();
-		if(cmd_name == "bye") return exit;
+		if(cmd_name == "setenv") return &sh_setenv;
+		if(cmd_name == "printenv") return &sh_printenv;
+		if(cmd_name == "unsetenv") return &sh_unsetenv;
+		if(cmd_name == "cd") return &sh_cd;
+		if(cmd_name == "alias") return &sh_alias;
+		if(cmd_name == "unalias") return &sh_unalias;
+		if(cmd_name == "bye") return &sh_bye;
 
 		return 0;
 	}
+
+	/*********************************************/
+	/* built-in function declarations */
+	/*********************************************/
+	//"setenv", "printenv", "unsetenv", "cd", "alias", "unalias", "bye"
+
 
 	/*********************************************/
 	/* execute_cmds - executes each command in 
@@ -63,6 +89,8 @@
 	void execute_cmds(){
 
 	}
+
+
 
 %}
 
@@ -107,9 +135,6 @@ output_redirect:
 		;
 
 %%
-
-//BUILT-INS:
-//"setenv", "printenv", "unsetenv", "cd", "alias", "unalias", "bye"
 
 //Non-built-ins
 //"cat", "ls", "cp", "mv", "rm", "ln", "mkdir", "chown", "chgrp", "chmod", "rmdir", "find"
