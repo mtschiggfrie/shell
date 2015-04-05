@@ -8,6 +8,8 @@
 	typedef enum { FALSE, TRUE } bool;
 	typedef int(*fptr)(int, char*[]);
 
+	/* a_cmd is for non-built-in commands */
+
 	struct a_cmd {
 		char * cmd_name;
 		char * file_out;
@@ -28,7 +30,18 @@
 	void init_a_cmd(char * cmd_name){
 		struct a_cmd cmd;
 		cmd.cmd_name = cmd_name;
+		cmd.nargs = 0;
 		cmdtab[num_cmds++] = cmd;
+	}
+
+	/*********************************************/
+	/* add_args - adds arg to most recently read 
+	cmd in cmdtab */
+	/*********************************************/
+
+	void add_args(char * arg){
+		struct a_cmd cmd = cmdtab[num_cmds];
+		cmd.args[cmd.nargs++] = arg;
 	}
 
 	/*********************************************/
@@ -38,7 +51,9 @@
 
 	fptr cmdmap(char * cmd_name){
 		fptr cfunc;
+		if(cmd_name == "cd") return chdir();
 		if(cmd_name == "bye") return exit;
+
 		return 0;
 	}
 
@@ -48,7 +63,7 @@
 	/*********************************************/
 
 	void execute_cmds(){
-		
+
 	}
 
 %}
@@ -61,7 +76,7 @@ command:
 		//init_a_cmd with cmd_name = OTHER_TOK
 		OTHER_TOK					{ $$ = $1; init_a_cmd($1);}
 		//push arg onto argv
-		| command OTHER_TOK			{ printf("reduced");}
+		| command OTHER_TOK			{ add_args($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK command	{ ;}
 		//change file_out, file_in and stdin,stdout,stderr as appropriate
