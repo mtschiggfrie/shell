@@ -45,39 +45,25 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    CD = 258,
-    FILENAME = 259,
-    PATH = 260,
-    EXIT = 261,
-    LIST = 262,
-    COPY = 263,
-    MOVE = 264,
-    REMOVE = 265,
-    LINK = 266,
-    MAKEDIR = 267,
-    TRANSFER = 268,
-    TRANSFERG = 269,
-    CHANGEPERM = 270,
-    REMOVEDIR = 271,
-    FIND = 272
+    OTHER_TOK = 258,
+    INTO_TOK = 259,
+    FROM_TOK = 260,
+    STDOUT_TOK = 261,
+    STDERR_TOK = 262,
+    BACKGROUND_TOK = 263,
+    PIPE_TOK = 264,
+    DUMMY_TOK = 265
   };
 #endif
 /* Tokens.  */
-#define CD 258
-#define FILENAME 259
-#define PATH 260
-#define EXIT 261
-#define LIST 262
-#define COPY 263
-#define MOVE 264
-#define REMOVE 265
-#define LINK 266
-#define MAKEDIR 267
-#define TRANSFER 268
-#define TRANSFERG 269
-#define CHANGEPERM 270
-#define REMOVEDIR 271
-#define FIND 272
+#define OTHER_TOK 258
+#define INTO_TOK 259
+#define FROM_TOK 260
+#define STDOUT_TOK 261
+#define STDERR_TOK 262
+#define BACKGROUND_TOK 263
+#define PIPE_TOK 264
+#define DUMMY_TOK 265
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

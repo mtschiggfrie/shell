@@ -1,4 +1,4 @@
 all:
-	flex Hello.l
-	bison -dy Hello.y
-	gcc lex.yy.c y.tab.c -o hello.exe
+	flex lex.l
+	bison -dy grammar.y
+	gcc lex.yy.c y.tab.c -o shell.exe
