@@ -70,11 +70,34 @@
 	#define YYSTYPE char *
 	typedef enum { FALSE, TRUE } bool;
 
-	void setup_table(char * cmd_name){}
-	void clear_table(){}
-	void bye(){}
+	struct a_cmd {
+		char * cmd_name;
+		char * file_out;
+		char * file_in;
+		int nargs;
+		char * args[];
+	};
 
-#line 78 "y.tab.c" /* yacc.c:339  */
+	struct cmdent {
+		char * cmd_name;
+		// bool built_in;
+		int (*cfunc)(int, char*[]);
+	};
+
+	struct a_cmd init_a_cmd(char * cmd_name){}
+	void clear_a_cmd(){}
+
+	//Store a_cmds in cmdtab[] for handling piping commands. 
+	// struct a_cmd cmdtab[];
+	// int num_cmds = 0;
+
+	// //Store all valid command names in cmdmap[]
+	// //[{cmd_name, built-in, function name}, ...]
+	// struct cmdent cmdmap[] = {
+	// 	{"bye", TRUE, exit}
+	// }
+
+#line 101 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -145,7 +168,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 149 "y.tab.c" /* yacc.c:358  */
+#line 172 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -443,8 +466,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    18,    18,    19,    20,    21,    22,    26,    27,    31,
-      35,    36,    37,    38
+       0,    42,    42,    44,    46,    48,    50,    55,    57,    62,
+      67,    69,    70,    71
 };
 #endif
 
@@ -1221,79 +1244,79 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 18 "grammar.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[0]); setup_table((yyvsp[0]));}
-#line 1227 "y.tab.c" /* yacc.c:1646  */
+#line 42 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]); init_a_cmd((yyvsp[0]));}
+#line 1250 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 19 "grammar.y" /* yacc.c:1646  */
+#line 44 "grammar.y" /* yacc.c:1646  */
     { printf("reduced");}
-#line 1233 "y.tab.c" /* yacc.c:1646  */
+#line 1256 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 20 "grammar.y" /* yacc.c:1646  */
+#line 46 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1239 "y.tab.c" /* yacc.c:1646  */
+#line 1262 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 21 "grammar.y" /* yacc.c:1646  */
+#line 48 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1245 "y.tab.c" /* yacc.c:1646  */
+#line 1268 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 22 "grammar.y" /* yacc.c:1646  */
+#line 50 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1251 "y.tab.c" /* yacc.c:1646  */
+#line 1274 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 26 "grammar.y" /* yacc.c:1646  */
+#line 55 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1257 "y.tab.c" /* yacc.c:1646  */
+#line 1280 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 27 "grammar.y" /* yacc.c:1646  */
+#line 57 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1263 "y.tab.c" /* yacc.c:1646  */
+#line 1286 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 31 "grammar.y" /* yacc.c:1646  */
+#line 62 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1269 "y.tab.c" /* yacc.c:1646  */
+#line 1292 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 35 "grammar.y" /* yacc.c:1646  */
+#line 67 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1275 "y.tab.c" /* yacc.c:1646  */
+#line 1298 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 36 "grammar.y" /* yacc.c:1646  */
+#line 69 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1281 "y.tab.c" /* yacc.c:1646  */
+#line 1304 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 37 "grammar.y" /* yacc.c:1646  */
+#line 70 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1287 "y.tab.c" /* yacc.c:1646  */
+#line 1310 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 38 "grammar.y" /* yacc.c:1646  */
+#line 71 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1293 "y.tab.c" /* yacc.c:1646  */
+#line 1316 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1297 "y.tab.c" /* yacc.c:1646  */
+#line 1320 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1521,28 +1544,8 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 41 "grammar.y" /* yacc.c:1906  */
+#line 74 "grammar.y" /* yacc.c:1906  */
 
-
-//BUILT-INS:
-//"setenv", "printenv", "unsetenv", "cd", "alias", "unalias", "bye"
-
-//Non-built-ins
-//"cat", "ls", "cp", "mv", "rm", "ln", "mkdir", "chown", "chgrp", "chmod", "rmdir", "find"
-
-struct cmd {
-	char * cmd_name;
-	char * file_out;
-	char * file_in;
-	int nargs;
-	char * args[];
-};
-
-struct cmdent {
-	char * cmd_name;
-	bool built_in;
-	int (*cfunc)(int,char*[]);
-};
 
 // const struct cmdent cmdtab[] = {
 // 	{"bye", 	TRUE, 	bye}
@@ -1553,3 +1556,9 @@ struct cmdent {
 // }
 
 // void clear_table(){}
+
+//BUILT-INS:
+//"setenv", "printenv", "unsetenv", "cd", "alias", "unalias", "bye"
+
+//Non-built-ins
+//"cat", "ls", "cp", "mv", "rm", "ln", "mkdir", "chown", "chgrp", "chmod", "rmdir", "find"

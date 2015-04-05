@@ -1774,8 +1774,8 @@ int main(void)
 {
 int tok = 1;
     do {
+    	if(end_shell == 1) break;
 		tok = yyparse();
-		if(end_shell == 1) break;
     } while (1);
     return 0;
 }
