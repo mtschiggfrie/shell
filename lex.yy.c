@@ -1873,7 +1873,7 @@ int main(void)
 {
 int tok = 1;
     do {
-		tok = yyparse();	
+		tok = yyparse();
     } while (1);
     return 0;
 }
