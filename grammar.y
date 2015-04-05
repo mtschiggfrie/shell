@@ -2,8 +2,11 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 
+	/* Declarations */
+
 	#define YYSTYPE char *
 	typedef enum { FALSE, TRUE } bool;
+	typedef int(*fptr)(int, char*[]);
 
 	struct a_cmd {
 		char * cmd_name;
@@ -13,24 +16,41 @@
 		char * args[];
 	};
 
-	struct cmdent {
-		char * cmd_name;
-		// bool built_in;
-		int (*cfunc)(int, char*[]);
-	};
+	struct a_cmd cmdtab[5];
+	int num_cmds = 0;
 
-	struct a_cmd init_a_cmd(char * cmd_name){}
-	void clear_a_cmd(){}
+	/*********************************************/
+	/* init_a_cmd - Initializes a_cmd with given 
+	cmd_name Then pushes the cmd into next free 
+	cmdtab */
+	/*********************************************/
 
-	//Store a_cmds in cmdtab[] for handling piping commands. 
-	// struct a_cmd cmdtab[];
-	// int num_cmds = 0;
+	void init_a_cmd(char * cmd_name){
+		struct a_cmd cmd;
+		cmd.cmd_name = cmd_name;
+		cmdtab[num_cmds++] = cmd;
+	}
 
-	// //Store all valid command names in cmdmap[]
-	// //[{cmd_name, built-in, function name}, ...]
-	// struct cmdent cmdmap[] = {
-	// 	{"bye", TRUE, exit}
-	// }
+	/*********************************************/
+	/*cmdmap - Maps each cmd_name to its proper 
+	function */
+	/*********************************************/
+
+	fptr cmdmap(char * cmd_name){
+		fptr cfunc;
+		if(cmd_name == "bye") return exit;
+		return 0;
+	}
+
+	/*********************************************/
+	/* execute_cmds - executes each command in 
+	cmdtab */
+	/*********************************************/
+
+	void execute_cmds(){
+		
+	}
+
 %}
 
 %token OTHER_TOK INTO_TOK FROM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK DUMMY_TOK
@@ -48,6 +68,8 @@ command:
 		| command redirect 			{ ;}
 		//execute command in background
 		| command BACKGROUND_TOK 	{ ;}
+		//execute the commands that have been defined at end of line
+		| command '\n'				{ execute_cmds();}
 		;
 
 redirect:
@@ -72,16 +94,6 @@ output_redirect:
 		;
 
 %%
-
-// const struct cmdent cmdtab[] = {
-// 	{"bye", 	TRUE, 	bye}
-// };
-
-// void setup_table(char * cmd_name){
-// 	printf("found bye");
-// }
-
-// void clear_table(){}
 
 //BUILT-INS:
 //"setenv", "printenv", "unsetenv", "cd", "alias", "unalias", "bye"
