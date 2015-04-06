@@ -23,6 +23,8 @@
 	bool append = FALSE;//Redirect and append STDOUT of final command to file_out
 	bool run_background = FALSE;//Default is to wait for cmds to finish executing
 
+	bool read_cmd = TRUE;//Flag for init_or_addarg to decide which function to call on reading OTHER_TOK
+
 	struct a_cmd * cmdtab[max_pipes];
 	int num_cmds = 0;
 	
@@ -36,6 +38,9 @@
 	/* init_a_cmd - Initializes a_cmd with given 
 	cmd_name Then pushes the cmd into next free 
 	cmdtab */
+	/* add_args - adds arg to most recently read 
+	cmd in cmdtab */
+	/* init_or_addarg - chooses which f to call */
 	/*********************************************/
 
 	void init_a_cmd(char * cmd_name){
@@ -46,14 +51,17 @@
 		cmdtab[num_cmds++] = cmd;
 	}
 
-	/*********************************************/
-	/* add_args - adds arg to most recently read 
-	cmd in cmdtab */
-	/*********************************************/
-
 	void add_args(char * arg){
 		struct a_cmd * cmd = cmdtab[num_cmds];
 		(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
+	}
+
+	void init_or_addarg(char * name){
+		if(read_cmd == TRUE){
+			init_a_cmd(name);
+			read_cmd = FALSE;
+		}
+		if(read_cmd == FALSE) add_args(name);
 	}
 
 	/*********************************************/
@@ -213,7 +221,7 @@
 		//return 1 for success?
 	}
 
-	int sh_bye(int nargs, char * args[]){}
+	int sh_bye(int nargs, char * args[]){exit(0);}
 
 	/*********************************************/
 	/*cmdmap - Maps each cmd_name to its proper 
@@ -320,6 +328,7 @@
 		for(i = 0; i < num_cmds; ++i) free(cmdtab[i]);  //release cmd mem for next line of input
 		num_cmds = 0; file_in = 0; file_out = 0;		//reset defaults
 		append = FALSE; run_background = FALSE;
+		read_cmd = TRUE;
 	}
 
 %}
@@ -331,9 +340,9 @@
 
 command:
 		//init_a_cmd with cmd_name = OTHER_TOK
-		OTHER_TOK					{ $$ = $1; printf("%s-cmd\n", $1); init_a_cmd($1);}
+		OTHER_TOK					{ $$ = $1; printf("%s-cmd\n", $1); init_or_addarg($1);}
 		//push arg onto argv
-		| command OTHER_TOK			{ $$ = $1; printf("%s-arg\n", $2); add_args($2);}
+		| command OTHER_TOK			{ $$ = $1; printf("%s-arg\n", $2); init_or_addarg($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK command	{ $$ = $3; init_a_cmd($3);}
 		//redirecting already done, just reducing statement
@@ -341,7 +350,8 @@ command:
 		//execute command in background
 		| command BACKGROUND_TOK 	{ $$ = $1; run_background = TRUE;}
 		//execute the commands that have been defined at end of line, then clears cmdtab
-		| command EOF_TOK			{ $$ = $1; execute_cmds(); clear_cmds();}
+		// { $$ = $1; execute_cmds(); clear_cmds(); } is the real cmd
+		| command EOF_TOK			{ $$ = $1; clear_cmds(); }
 		;
 
 redirect:
