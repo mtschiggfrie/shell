@@ -109,8 +109,15 @@
 
 			/* search non-built-ins */
 			else if(sh_func = xsh_cmdmap(cmd -> cmd_name)){
+				int j;
+				int * pipes[num_cmds];
+
+				for(j = 0; j < num_cmds; ++j){
+
+				}
+
 				/* Test pipe code *//*
-				we have n matched_cmds
+				we have num_cmds matched_cmds
 				create the pipes and put in pipe_list
 				pipe_list = {int pipe_12[2], pipe_23[2], ..., pipe_(n-1)n[2]}
 				pid_list = {int pid_1, pid_2, ..., pid_n}
@@ -178,13 +185,19 @@ command:
 		| command OTHER_TOK			{ $$ = $1; add_args($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK command	{ $$ = $3; init_a_cmd($3);}
-		//change file_out, file_in and stdin,stdout,stderr as appropriate
-		| command redirect 			{ ;}
+		//redirecting already done, just reducing statement
+		| command redirect 			{ $$ = $1;}
 		//execute command in background
 		| command BACKGROUND_TOK 	{ $$ = $1; run_background = TRUE;}
 		//execute the commands that have been defined at end of line, then clears cmdtab
-		| command EOF_TOK			{ execute_cmds(); clear_cmds();}
+		| command '\n'			{ $$ = $1; execute_cmds(); clear_cmds();}
 		;
+
+redirect:
+		//input redirect always occurs first
+		input_redirect { ;}
+		//add on output redirect if existing
+		| redirect output_redirect { ;}//all remaining redirect is output_redirect
 
 input_redirect:
 		//redirect file_in
@@ -197,7 +210,7 @@ output_redirect:
 		//redirect 
 		| INTO_TOK INTO_TOK			{ $$ = $1; append = TRUE;}//append, push back INTO_TOK
 		| STDERR_TOK INTO_TOK STDOUT_TOK	{ ;}//stderr outputs to stdout
-		| STDERR_TOK output_redirect		{ ;}//stderr outputs to file
+		| STDERR_TOK output_redirect		{ ;}//stderr outputs to file_out
 		;
 
 %%
