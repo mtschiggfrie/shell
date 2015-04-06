@@ -121,7 +121,7 @@
 			would just the name be in args?
 			then get the cmd from cmdtab?
 			or is cmd in args?
-			/*
+			*/
 			aliastab[num_alias] = args[1];
 			aliasname[num_alias] = args[0];
 			num_alias++;

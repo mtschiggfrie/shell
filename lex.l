@@ -6,9 +6,9 @@
 int end_shell = 0;
 
 %}
-OTHER_TOK
+
 %%
-\"[ A-Za-z_0-9\\\/]*\"           { return OTHER_TOK; }
+\"[ A-Za-z_0-9]*\"           	 { return OTHER_TOK; }
 "\>"                             { return INTO_TOK;  }
 "<"                              { return FROM_TOK;  }
 "|"                              { return PIPE_TOK;  }
