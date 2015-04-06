@@ -6,12 +6,21 @@
 int end_shell = 0;
 
 %}
-
+OTHER_TOK
 %%
-"bye"							 { end_shell = 1; }
-[A-Za-z0-9]+"\."[A-Za-z_0-9]+    { return DUMMY_TOK;  }
-[A-Za-z0-9\\\/]+                 { return DUMMY_TOK;  }
-[ \t\n]           {}
+\"[ A-Za-z_0-9\\\/]*\"           { return OTHER_TOK; }
+"\>"                             { return INTO_TOK;  }
+"<"                              { return FROM_TOK;  }
+"|"                              { return PIPE_TOK;  }
+"&"                              { return BACKGROUND_TOK; }
+"2"                              { return STDERR_TOK;  }
+"&1"                             { return STDOUT_TOK;  }
+"bye"							 { end_shell = 1; return;}
+[A-Za-z0-9]+"\."[A-Za-z_0-9]+    { return OTHER_TOK;  }
+[A-Za-z0-9\\\/]+                 { return OTHER_TOK;  }
+\n                               { return EOF_TOK;  }
+[ \t]                          {}
+.                                {}
 %%
 
 int main(void)
