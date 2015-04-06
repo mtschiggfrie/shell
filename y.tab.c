@@ -111,7 +111,7 @@
 	void init_a_cmd(char * cmd_name){
 		struct a_cmd * cmd = malloc(sizeof (struct a_cmd));
 		if(!cmd) //throw mem error
-		cmd -> cmd_name = malloc(100* sizeof (char));
+		cmd -> cmd_name = malloc(100* sizeof (char)); //placeholder 100
 		cmd -> cmd_name = cmd_name;
 		cmd -> nargs = 0;
 		cmdtab[num_cmds++] = cmd;
@@ -124,11 +124,11 @@
 
 	void init_or_addarg(char * name){
 		if(read_cmd == FALSE){
-			printf("%s-arg\n", name); 
+			// printf("%s-arg\n", name); 
 			add_args(name);
 		}
 		if(read_cmd == TRUE){
-			printf("%s-cmd\n", name); 
+			// printf("%s-cmd\n", name); 
 			init_a_cmd(name);
 			read_cmd = FALSE;
 		}
@@ -299,13 +299,13 @@
 	/*********************************************/
 
 	fptr sh_cmdmap(char * cmd_name){
-		if(cmd_name == "setenv") return &sh_setenv;
-		if(cmd_name == "printenv") return &sh_printenv;
-		if(cmd_name == "unsetenv") return &sh_unsetenv;
-		if(cmd_name == "cd") return &sh_cd;
-		if(cmd_name == "alias") return &sh_alias;
-		if(cmd_name == "unalias") return &sh_unalias;
-		if(cmd_name == "bye") return &sh_bye;
+		if(!strcmp(cmd_name, "setenv")) return &sh_setenv;
+		if(!strcmp(cmd_name,"printenv")) return &sh_printenv;
+		if(!strcmp(cmd_name, "unsetenv")) return &sh_unsetenv;
+		if(!strcmp(cmd_name, "cd")) return &sh_cd;
+		if(!strcmp(cmd_name, "alias")) return &sh_alias;
+		if(!strcmp(cmd_name, "unalias")) return &sh_unalias;
+		if(!strcmp(cmd_name, "bye")) return &sh_bye;
 
 		return 0;
 	}
@@ -324,21 +324,22 @@
 	void execute_cmds(){
 		int i;
 		int pid;
-		fptr sh_func;
+		fptr a_func;
 		struct a_cmd * cmd;
 
 		for(i = 0; i < num_cmds; ++i){
 			cmd = cmdtab[i];
 			
 			/* search built-ins */
-			if(sh_func = sh_cmdmap(cmd -> cmd_name)){
-				printf("!!!!!!");
+			// a_func = sh_cmdmap(cmd -> cmd_name);
+
+			if(a_func = sh_cmdmap(cmd -> cmd_name)){
 				//will only be one cmd for built-ins, set a flag after running
-				sh_func(cmd -> nargs, cmd -> args);
+				a_func(cmd -> nargs, cmd -> args);
 			}
 
 			/* search non-built-ins */
-			else if(sh_func = xsh_cmdmap(cmd -> cmd_name)){
+			else if(a_func = xsh_cmdmap(cmd -> cmd_name)){
 				int j;
 				int * pipes[num_cmds];
 
@@ -403,7 +404,7 @@
 	}
 
 
-#line 407 "y.tab.c" /* yacc.c:339  */
+#line 408 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -474,7 +475,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 478 "y.tab.c" /* yacc.c:358  */
+#line 479 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -772,8 +773,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   349,   349,   351,   353,   355,   357,   360,   365,   367,
-     371,   376,   378,   379,   380
+       0,   350,   350,   352,   354,   356,   358,   361,   366,   368,
+     372,   377,   379,   380,   381
 };
 #endif
 
@@ -1553,85 +1554,85 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 349 "grammar.y" /* yacc.c:1646  */
+#line 350 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); init_or_addarg((yyvsp[0]));}
-#line 1559 "y.tab.c" /* yacc.c:1646  */
+#line 1560 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 351 "grammar.y" /* yacc.c:1646  */
+#line 352 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); init_or_addarg((yyvsp[0]));}
-#line 1565 "y.tab.c" /* yacc.c:1646  */
+#line 1566 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 353 "grammar.y" /* yacc.c:1646  */
+#line 354 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); init_a_cmd((yyvsp[0]));}
-#line 1571 "y.tab.c" /* yacc.c:1646  */
+#line 1572 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 355 "grammar.y" /* yacc.c:1646  */
+#line 356 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]);}
-#line 1577 "y.tab.c" /* yacc.c:1646  */
+#line 1578 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 357 "grammar.y" /* yacc.c:1646  */
+#line 358 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); run_background = TRUE;}
-#line 1583 "y.tab.c" /* yacc.c:1646  */
+#line 1584 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 360 "grammar.y" /* yacc.c:1646  */
+#line 361 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); execute_cmds(); clear_cmds(); }
-#line 1589 "y.tab.c" /* yacc.c:1646  */
+#line 1590 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 365 "grammar.y" /* yacc.c:1646  */
+#line 366 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1595 "y.tab.c" /* yacc.c:1646  */
+#line 1596 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 367 "grammar.y" /* yacc.c:1646  */
+#line 368 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1601 "y.tab.c" /* yacc.c:1646  */
+#line 1602 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 371 "grammar.y" /* yacc.c:1646  */
+#line 372 "grammar.y" /* yacc.c:1646  */
     { file_in = (yyvsp[0]);}
-#line 1607 "y.tab.c" /* yacc.c:1646  */
+#line 1608 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 376 "grammar.y" /* yacc.c:1646  */
+#line 377 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); file_out = (yyvsp[0]);}
-#line 1613 "y.tab.c" /* yacc.c:1646  */
+#line 1614 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 378 "grammar.y" /* yacc.c:1646  */
+#line 379 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); append = TRUE;}
-#line 1619 "y.tab.c" /* yacc.c:1646  */
+#line 1620 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 379 "grammar.y" /* yacc.c:1646  */
+#line 380 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1625 "y.tab.c" /* yacc.c:1646  */
+#line 1626 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 380 "grammar.y" /* yacc.c:1646  */
+#line 381 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1631 "y.tab.c" /* yacc.c:1646  */
+#line 1632 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1635 "y.tab.c" /* yacc.c:1646  */
+#line 1636 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1859,7 +1860,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 383 "grammar.y" /* yacc.c:1906  */
+#line 384 "grammar.y" /* yacc.c:1906  */
 
 
 //Non-built-ins

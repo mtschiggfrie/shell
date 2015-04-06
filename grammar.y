@@ -46,7 +46,7 @@
 	void init_a_cmd(char * cmd_name){
 		struct a_cmd * cmd = malloc(sizeof (struct a_cmd));
 		if(!cmd) //throw mem error
-		cmd -> cmd_name = malloc(100* sizeof (char));
+		cmd -> cmd_name = malloc(100* sizeof (char)); //placeholder 100
 		cmd -> cmd_name = cmd_name;
 		cmd -> nargs = 0;
 		cmdtab[num_cmds++] = cmd;
@@ -59,11 +59,11 @@
 
 	void init_or_addarg(char * name){
 		if(read_cmd == FALSE){
-			printf("%s-arg\n", name); 
+			// printf("%s-arg\n", name); 
 			add_args(name);
 		}
 		if(read_cmd == TRUE){
-			printf("%s-cmd\n", name); 
+			// printf("%s-cmd\n", name); 
 			init_a_cmd(name);
 			read_cmd = FALSE;
 		}
@@ -234,13 +234,13 @@
 	/*********************************************/
 
 	fptr sh_cmdmap(char * cmd_name){
-		if(cmd_name == "setenv") return &sh_setenv;
-		if(cmd_name == "printenv") return &sh_printenv;
-		if(cmd_name == "unsetenv") return &sh_unsetenv;
-		if(cmd_name == "cd") return &sh_cd;
-		if(cmd_name == "alias") return &sh_alias;
-		if(cmd_name == "unalias") return &sh_unalias;
-		if(cmd_name == "bye") return &sh_bye;
+		if(!strcmp(cmd_name, "setenv")) return &sh_setenv;
+		if(!strcmp(cmd_name,"printenv")) return &sh_printenv;
+		if(!strcmp(cmd_name, "unsetenv")) return &sh_unsetenv;
+		if(!strcmp(cmd_name, "cd")) return &sh_cd;
+		if(!strcmp(cmd_name, "alias")) return &sh_alias;
+		if(!strcmp(cmd_name, "unalias")) return &sh_unalias;
+		if(!strcmp(cmd_name, "bye")) return &sh_bye;
 
 		return 0;
 	}
@@ -259,21 +259,22 @@
 	void execute_cmds(){
 		int i;
 		int pid;
-		fptr sh_func;
+		fptr a_func;
 		struct a_cmd * cmd;
 
 		for(i = 0; i < num_cmds; ++i){
 			cmd = cmdtab[i];
 			
 			/* search built-ins */
-			if(sh_func = sh_cmdmap(cmd -> cmd_name)){
-				printf("!!!!!!");
+			a_func = sh_cmdmap(cmd -> cmd_name)
+			if(a_func){
 				//will only be one cmd for built-ins, set a flag after running
-				sh_func(cmd -> nargs, cmd -> args);
+				a_func(cmd -> nargs, cmd -> args);
 			}
 
 			/* search non-built-ins */
-			else if(sh_func = xsh_cmdmap(cmd -> cmd_name)){
+			a_func = xsh_cmdmap(cmd -> cmd_name)
+			else if(a_func){
 				int j;
 				int * pipes[num_cmds];
 
