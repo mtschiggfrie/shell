@@ -57,14 +57,14 @@
 	}
 
 	void init_or_addarg(char * name){
+		if(read_cmd == FALSE){
+			printf("%s-arg\n", name); 
+			add_args(name);
+		}
 		if(read_cmd == TRUE){
 			printf("%s-cmd\n", name); 
 			init_a_cmd(name);
 			read_cmd = FALSE;
-		}
-		if(read_cmd == FALSE){
-			printf("%s-arg\n", name); 
-			add_args(name);
 		}
 	}
 
