@@ -52,16 +52,20 @@
 	}
 
 	void add_args(char * arg){
-		struct a_cmd * cmd = cmdtab[num_cmds];
+		struct a_cmd * cmd = cmdtab[num_cmds - 1]; //current command
 		(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
 	}
 
 	void init_or_addarg(char * name){
 		if(read_cmd == TRUE){
+			printf("%s-cmd\n", name); 
 			init_a_cmd(name);
 			read_cmd = FALSE;
 		}
-		if(read_cmd == FALSE) add_args(name);
+		if(read_cmd == FALSE){
+			printf("%s-arg\n", name); 
+			add_args(name);
+		}
 	}
 
 	/*********************************************/
@@ -340,9 +344,9 @@
 
 command:
 		//init_a_cmd with cmd_name = OTHER_TOK
-		OTHER_TOK					{ $$ = $1; printf("%s-cmd\n", $1); init_or_addarg($1);}
+		OTHER_TOK					{ $$ = $1; init_or_addarg($1);}
 		//push arg onto argv
-		| command OTHER_TOK			{ $$ = $1; printf("%s-arg\n", $2); init_or_addarg($2);}
+		| command OTHER_TOK			{ $$ = $1; init_or_addarg($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK command	{ $$ = $3; init_a_cmd($3);}
 		//redirecting already done, just reducing statement
