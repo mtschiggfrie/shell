@@ -266,15 +266,13 @@
 			cmd = cmdtab[i];
 			
 			/* search built-ins */
-			a_func = sh_cmdmap(cmd -> cmd_name)
-			if(a_func){
+			if(a_func = sh_cmdmap(cmd -> cmd_name)){
 				//will only be one cmd for built-ins, set a flag after running
 				a_func(cmd -> nargs, cmd -> args);
 			}
 
-			/* search non-built-ins */
-			a_func = xsh_cmdmap(cmd -> cmd_name)
-			else if(a_func){
+			/* search non-built-ins */	
+			else if(a_func = xsh_cmdmap(cmd -> cmd_name)){
 				int j;
 				int * pipes[num_cmds];
 
