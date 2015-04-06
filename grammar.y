@@ -3,18 +3,23 @@
 	#include <stdlib.h>
 
 	#define YYSTYPE char *
+	#define max_pipes 5
+
 	typedef enum { FALSE, TRUE } bool;
 	typedef int(*fptr)(int, char*[]);
 
 	struct a_cmd {
 		char * cmd_name;
-		char * file_out;
-		char * file_in;
 		int nargs;
 		char * args[];
 	};
 
-	struct a_cmd cmdtab[5];
+	char * file_out;	//Redirect STDOUT of final command to file_out
+	char * file_in;		//Redirect STDIN of final command to file_in
+	bool append = FALSE;//Redirect and append STDOUT of final command to file_out
+	bool run_background = FALSE;//Default is to wait for cmds to finish executing
+
+	struct a_cmd * cmdtab[max_pipes];
 	int num_cmds = 0;
 
 	/*********************************************/
@@ -24,9 +29,10 @@
 	/*********************************************/
 
 	void init_a_cmd(char * cmd_name){
-		struct a_cmd cmd;
-		cmd.cmd_name = cmd_name;
-		cmd.nargs = 0;
+		struct a_cmd * cmd = malloc(sizeof * cmd);
+		if(!cmd) //throw mem error
+		cmd -> cmd_name = cmd_name;
+		cmd -> nargs = 0;
 		cmdtab[num_cmds++] = cmd;
 	}
 
@@ -36,8 +42,8 @@
 	/*********************************************/
 
 	void add_args(char * arg){
-		struct a_cmd cmd = cmdtab[num_cmds];
-		cmd.args[cmd.nargs++] = arg;
+		struct a_cmd * cmd = cmdtab[num_cmds];
+		(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
 	}
 
 	/*********************************************/
@@ -63,7 +69,7 @@
 	function */
 	/*********************************************/
 
-	fptr cmdmap(char * cmd_name){
+	fptr sh_cmdmap(char * cmd_name){
 		if(cmd_name == "setenv") return &sh_setenv;
 		if(cmd_name == "printenv") return &sh_printenv;
 		if(cmd_name == "unsetenv") return &sh_unsetenv;
@@ -75,57 +81,123 @@
 		return 0;
 	}
 
+	fptr xsh_cmdmap(char * cmd_name){
+		if(cmd_name == "ls") return;
+
+		return 0;
+	}
+
 	/*********************************************/
 	/* execute_cmds - executes each command in 
 	cmdtab */
 	/*********************************************/
 
 	void execute_cmds(){
+		int i;
+		int pid;
+		fptr sh_func;
+		struct a_cmd * cmd;
 
+		for(i = 0; i < num_cmds; ++i){
+			cmd = cmdtab[i];
+			
+			/* search built-ins */
+			if(sh_func = sh_cmdmap(cmd -> cmd_name)){
+				//will only be one cmd for built-ins, set a flag after running
+				sh_func(cmd -> nargs, cmd -> args);
+			}
+
+			/* search non-built-ins */
+			else if(sh_func = xsh_cmdmap(cmd -> cmd_name)){
+				/* Test pipe code *//*
+				we have n matched_cmds
+				create the pipes and put in pipe_list
+				pipe_list = {int pipe_12[2], pipe_23[2], ..., pipe_(n-1)n[2]}
+				pid_list = {int pid_1, pid_2, ..., pid_n}
+
+				first cmd case(redirecting STDIN to input_file for pid_1):
+					open file_in for first cmd
+					dup2(fileno(file_in), STDIN_FILENO)
+					fclose(file_in)
+					execute process first process
+					[error handling]
+
+				for (i=2; i < n; ++i) [1-n chosen]:
+					pid_i = fork()
+					if pid_i == child:
+						dup2(pipe_(i-1)i[0], STDIN_FILENO)
+						dup2(pipe_i(i+1)[1], STDOUT_FILENO)
+						==
+						process i reads from process i-1
+						process i writes to process i+1
+						close pipes
+						execute cmd
+						[error handling]
+						exit()
+
+				end case(redirecting STDOUT to output_file for final pid):
+					open file_out for final cmd
+					dup2(fileno(file_out), STDOUT_FILENO)
+					fclose(file_out)
+					execute process final process
+					[error handling]
+
+				if wait for cmds to complete (background_tok)
+					wait() n times
+
+				close pipes
+				*/
+			}
+			
+			else{
+				//no matching cmd found
+			}
+
+		}
 	}
 
+	void clear_cmds(){
+		int i;
 
+		for(i = 0; i < num_cmds; ++i) free(cmdtab[i]);  //release cmd mem for next line of input
+		num_cmds = 0; file_in = 0; file_out = 0;		//reset defaults
+		append = FALSE; run_background = FALSE;
+	}
 
 %}
 
-%token OTHER_TOK INTO_TOK FROM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK DUMMY_TOK
+%token OTHER_TOK INTO_TOK FROM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK EOF_TOK
 
 %%
+
 
 command:
 		//init_a_cmd with cmd_name = OTHER_TOK
 		OTHER_TOK					{ $$ = $1; init_a_cmd($1);}
 		//push arg onto argv
-		| command OTHER_TOK			{ add_args($2);}
+		| command OTHER_TOK			{ $$ = $1; add_args($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
-		| command PIPE_TOK command	{ ;}
+		| command PIPE_TOK command	{ $$ = $3; init_a_cmd($3);}
 		//change file_out, file_in and stdin,stdout,stderr as appropriate
 		| command redirect 			{ ;}
 		//execute command in background
-		| command BACKGROUND_TOK 	{ ;}
-		//execute the commands that have been defined at end of line
-		| command '\n'				{ execute_cmds();}
-		;
-
-redirect:
-		//input redirect always occurs first
-		input_redirect				{ ;}
-		//add on output redirect if existing
-		| redirect output_redirect  { ;}//all remaining redirect is output_redirect
+		| command BACKGROUND_TOK 	{ $$ = $1; run_background = TRUE;}
+		//execute the commands that have been defined at end of line, then clears cmdtab
+		| command EOF_TOK			{ execute_cmds(); clear_cmds();}
 		;
 
 input_redirect:
 		//redirect file_in
-		FROM_TOK command			{ ;}
+		FROM_TOK OTHER_TOK			{ file_in = $2;}
 		;
 
 output_redirect:
 		//redirect file_out
-		INTO_TOK command			{ ;}
+		INTO_TOK OTHER_TOK			{ $$ = $2; file_out = $2;}//output_redirect = file_name
 		//redirect 
-		| INTO_TOK STDOUT_TOK		{ ;}//for redirecting stderr to stdout
-		| INTO_TOK INTO_TOK			{ ;}//redirect and append (change yylval to >>)
-		| STDERR_TOK output_redirect{ ;}
+		| INTO_TOK INTO_TOK			{ $$ = $1; append = TRUE;}//append, push back INTO_TOK
+		| STDERR_TOK INTO_TOK STDOUT_TOK	{ ;}//stderr outputs to stdout
+		| STDERR_TOK output_redirect		{ ;}//stderr outputs to file
 		;
 
 %%
