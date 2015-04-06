@@ -1,8 +1,11 @@
 %{
 	#include <stdio.h>
 	#include <stdlib.h>
-
+	#include <unistd.h> 
+	
 	#define YYSTYPE char *
+	#define MAXENVVARS 10
+	#define MAXALIASES 10
 	#define max_pipes 5
 
 	typedef enum { FALSE, TRUE } bool;
@@ -21,6 +24,13 @@
 
 	struct a_cmd * cmdtab[max_pipes];
 	int num_cmds = 0;
+	
+	char* env_vars[MAXENVVARS][2];  //env_vars[0][0] = variable and env_vars[0][1] = word
+	int num_env_vars = 0;
+	
+	struct a_cmd aliastab[MAXALIASES];   //stores the alias cmds
+	char* aliasname[MAXALIASES];  		 //stores the alias names
+	int num_alias = 0;
 
 	/*********************************************/
 	/* init_a_cmd - Initializes a_cmd with given 
@@ -50,17 +60,105 @@
 	/* built-in functions
 	/*********************************************/
 
-	int sh_setenv(int nargs, char * args[]){}
+	int sh_setenv(int nargs, char * args[]){
+		if(MAXENVVARS == num_env_vars){
+			//throw error can't add more into array
+			//return 0 for error?
+		}
+		else{
+			env_vars[num_env_vars][0] = args[0];
+			env_vars[num_env_vars][1] = args[1];
+			num_env_vars++;
+			//return 1 for error?
+		}
+	}
 
-	int sh_printenv(int nargs, char * args[]){}
+	int sh_printenv(int nargs, char * args[]){
+		if(num_env_vars == 0){
+			printf("You currently do not have any environmental variables.");
+		}
+		else{
+			int i;
+			for(i = 0; i < num_env_vars; ++i){
+				printf(env_vars[i][0] + "=" + env_vars[i][1]);
+			}
+		}
+		//always return 1 because never fails?
+	}
 
-	int sh_unsetenv(int nargs, char * args[]){}
+	int sh_unsetenv(int nargs, char * args[]){
+		int i;
+		for(i = 0; i < num_env_vars; ++i){
+			if(env_vars[i][0] == args[0]){
+				int j;
+				for(j = i; j < num_env_vars; ++j){
+					if(j == num_env_vars - 1){
+						env_vars[j][0] = "";
+						env_vars[j][1] = "";
+						num_env_vars--;
+						//return 1 for success?
+					}
+					else{
+						env_vars[j][0] = env_vars[j+1][0];
+						env_vars[j][1] = env_vars[j+1][1];
+					}
+				}
+			}
+		}
+		printf("The variable you entered is not stored.");
+		//still return 1 because instructions say ignore non-finds? still print statement?
+	}
 
 	int sh_cd(int nargs, char * args[]){}
 
-	int sh_alias(int nargs, char * args[]){}
+	int sh_alias(int nargs, char * args[]){
+		if(MAXALIASES == num_alias){
+			//throw error; cant hold more aliases
+			//return 0 for error?
+		}
+		else{
+			/* 
+			would just the name be in args?
+			then get the cmd from cmdtab?
+			or is cmd in args?
+			/*
+			aliastab[num_alias] = args[1];
+			aliasname[num_alias] = args[0];
+			num_alias++;
+			//return 1 for success?
+		}
+	}
 
-	int sh_unalias(int nargs, char * args[]){}
+	int sh_unalias(int nargs, char * args[]){
+		int i;
+		for(i = 0; i < num_alias; ++i){
+			if(aliasname[i] == args[0]){
+				int j;
+				for(j = i; j < num_alias; ++j){
+					if(j == num_alias - 1){
+						aliasname[j] = "";
+						aliastab[j] = 0;
+						num_alias--;
+						//return 1 for success?
+					}
+					else{
+						aliasname[j] = aliasname[j+1];
+						aliastab[j] = aliastab[j+1];
+					}
+				}
+			}
+		}
+		printf("An alias by that name was not found.");
+		//return 0 for failure?
+	}
+	
+	int sh_aliaslist(int nargs, char * args[]){
+		int i;
+		for(i = 0; i < num_alias; ++i){
+			printf(aliasname[i] + "\n");
+		}
+		//return 1 for success?
+	}
 
 	int sh_bye(int nargs, char * args[]){}
 
