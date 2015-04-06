@@ -94,7 +94,7 @@
 			strcpy(str_output, env_vars[i][0]);
 			strcat(str_output, " = ");
 			strcat(str_output, env_vars[i][1]);
-			printf(str_output);
+			printf("%s\n", str_output);
 			}
 		}
 		//always return 1 because never fails?
@@ -208,8 +208,7 @@
 		}
 		int i;
 		for(i = 0; i < num_alias; ++i){
-			printf(alias[i][0]);
-			printf("\n");
+			printf("%s\n", alias[i][0]);
 		}
 		//return 1 for success?
 	}
@@ -332,9 +331,9 @@
 
 command:
 		//init_a_cmd with cmd_name = OTHER_TOK
-		OTHER_TOK					{ $$ = $1; init_a_cmd($1);}
+		OTHER_TOK					{ $$ = $1; printf("%s-cmd\n", $1); init_a_cmd($1);}
 		//push arg onto argv
-		| command OTHER_TOK			{ $$ = $1; add_args($2);}
+		| command OTHER_TOK			{ $$ = $1; printf("%s-arg\n", $2); add_args($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK command	{ $$ = $3; init_a_cmd($3);}
 		//redirecting already done, just reducing statement

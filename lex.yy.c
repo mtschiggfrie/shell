@@ -424,9 +424,9 @@ static yyconst flex_int32_t yy_meta[19] =
 
 static yyconst flex_int16_t yy_base[30] =
     {   0,
-        0,    0,   38,   39,   39,   39,   32,   26,    0,   12,
-       14,   39,   39,   18,   39,   20,   39,   39,    0,    0,
-        0,    8,    0,    0,   39,   21,   24,   27,   28
+        0,    0,   39,   40,   40,   40,   33,   27,    0,   12,
+       14,   40,   40,   19,   40,   30,   40,   40,    0,    0,
+        0,    8,    0,    0,   40,   21,   24,   27,   28
     } ;
 
 static yyconst flex_int16_t yy_def[30] =
@@ -436,24 +436,24 @@ static yyconst flex_int16_t yy_def[30] =
        11,   11,   29,   11,    0,   25,   25,   25,   25
     } ;
 
-static yyconst flex_int16_t yy_nxt[58] =
+static yyconst flex_int16_t yy_nxt[59] =
     {   0,
         4,    5,    6,    5,    7,    8,    4,    9,   10,   10,
        11,   12,   13,    4,   14,   10,   10,   15,   20,   19,
-       20,   19,   16,   24,   17,   16,   16,   19,   19,   21,
-       21,   21,   23,   23,   22,   18,   17,   25,    3,   25,
+       20,   19,   16,   24,   16,   16,   16,   19,   19,   21,
+       21,   21,   23,   23,   17,   22,   18,   17,   25,    3,
        25,   25,   25,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,   25,   25,   25,   25
+       25,   25,   25,   25,   25,   25,   25,   25
     } ;
 
-static yyconst flex_int16_t yy_chk[58] =
+static yyconst flex_int16_t yy_chk[59] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,   10,   10,
-       11,   11,   26,   22,   16,   26,   26,   27,   27,   28,
-       28,   28,   29,   29,   14,    8,    7,    3,   25,   25,
+       11,   11,   26,   22,   26,   26,   26,   27,   27,   28,
+       28,   28,   29,   29,   16,   14,    8,    7,    3,   25,
        25,   25,   25,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,   25,   25,   25,   25
+       25,   25,   25,   25,   25,   25,   25,   25
     } ;
 
 static yy_state_type yy_last_accepting_state;
@@ -474,11 +474,12 @@ char *yytext;
 #line 2 "lex.l"
 
 #include <stdlib.h>
+#include <string.h>
 #include "y.tab.h"
-
+extern YYSTYPE yylval;
 int end_shell = 0;
 
-#line 482 "lex.yy.c"
+#line 483 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -665,9 +666,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 10 "lex.l"
+#line 11 "lex.l"
 
-#line 671 "lex.yy.c"
+#line 672 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -726,7 +727,7 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 39 );
+		while ( yy_base[yy_current_state] != 40 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -752,76 +753,76 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 11 "lex.l"
-{ return OTHER_TOK; }
+#line 12 "lex.l"
+{ yylval = strdup(yytext); return OTHER_TOK; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 12 "lex.l"
+#line 13 "lex.l"
 { return INTO_TOK;  }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 13 "lex.l"
+#line 14 "lex.l"
 { return FROM_TOK;  }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 14 "lex.l"
+#line 15 "lex.l"
 { return PIPE_TOK;  }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 15 "lex.l"
+#line 16 "lex.l"
 { return BACKGROUND_TOK; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 16 "lex.l"
+#line 17 "lex.l"
 { return STDERR_TOK;  }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 17 "lex.l"
+#line 18 "lex.l"
 { return STDOUT_TOK;  }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 18 "lex.l"
+#line 19 "lex.l"
 { end_shell = 1; return;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 19 "lex.l"
-{ return OTHER_TOK;  }
+#line 20 "lex.l"
+{ yylval = strdup(yytext); return OTHER_TOK;  }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 20 "lex.l"
-{ return OTHER_TOK;  }
+#line 21 "lex.l"
+{ yylval = strdup(yytext); return OTHER_TOK;  }
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 21 "lex.l"
+#line 22 "lex.l"
 { return EOF_TOK;  }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 22 "lex.l"
+#line 23 "lex.l"
 {}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 23 "lex.l"
+#line 24 "lex.l"
 {}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 24 "lex.l"
+#line 25 "lex.l"
 ECHO;
 	YY_BREAK
-#line 825 "lex.yy.c"
+#line 826 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1819,7 +1820,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 24 "lex.l"
+#line 25 "lex.l"
 
 
 
