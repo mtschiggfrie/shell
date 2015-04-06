@@ -44,8 +44,9 @@
 	/*********************************************/
 
 	void init_a_cmd(char * cmd_name){
-		struct a_cmd * cmd = malloc(sizeof * cmd);
+		struct a_cmd * cmd = malloc(sizeof (struct a_cmd));
 		if(!cmd) //throw mem error
+		cmd -> cmd_name = malloc(100* sizeof (char));
 		cmd -> cmd_name = cmd_name;
 		cmd -> nargs = 0;
 		cmdtab[num_cmds++] = cmd;
@@ -266,6 +267,7 @@
 			
 			/* search built-ins */
 			if(sh_func = sh_cmdmap(cmd -> cmd_name)){
+				printf("!!!!!!");
 				//will only be one cmd for built-ins, set a flag after running
 				sh_func(cmd -> nargs, cmd -> args);
 			}
@@ -329,7 +331,7 @@
 	void clear_cmds(){
 		int i;
 
-		for(i = 0; i < num_cmds; ++i) free(cmdtab[i]);  //release cmd mem for next line of input
+		for(i = 0; i < num_cmds; ++i) free(cmdtab[i-1]);  //release cmd mem for next line of input
 		num_cmds = 0; file_in = 0; file_out = 0;		//reset defaults
 		append = FALSE; run_background = FALSE;
 		read_cmd = TRUE;
@@ -355,7 +357,7 @@ command:
 		| command BACKGROUND_TOK 	{ $$ = $1; run_background = TRUE;}
 		//execute the commands that have been defined at end of line, then clears cmdtab
 		// { $$ = $1; execute_cmds(); clear_cmds(); } is the real cmd
-		| command EOF_TOK			{ $$ = $1; clear_cmds(); }
+		| command EOF_TOK			{ $$ = $1; execute_cmds(); clear_cmds(); }
 		;
 
 redirect:
