@@ -2,6 +2,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <unistd.h> 
+	#include <string.h>
 	
 	#define YYSTYPE char *
 	#define MAXENVVARS 10
@@ -28,8 +29,7 @@
 	char* env_vars[MAXENVVARS][2];  //env_vars[0][0] = variable and env_vars[0][1] = word
 	int num_env_vars = 0;
 	
-	struct a_cmd aliastab[MAXALIASES];   //stores the alias cmds
-	char* aliasname[MAXALIASES];  		 //stores the alias names
+	char* alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
 	int num_alias = 0;
 
 	/*********************************************/
@@ -60,36 +60,56 @@
 	/* built-in functions
 	/*********************************************/
 
+
 	int sh_setenv(int nargs, char * args[]){
+		if(nargs > 3){
+			//too many args throw error
+		}
+		if(nargs < 3){
+			//too little args throw error
+		}
 		if(MAXENVVARS == num_env_vars){
-			//throw error can't add more into array
-			//return 0 for error?
+			//throw error; array full
+			//return -1 for error?
 		}
 		else{
-			env_vars[num_env_vars][0] = args[0];
-			env_vars[num_env_vars][1] = args[1];
+			env_vars[num_env_vars][0] = args[1];
+			env_vars[num_env_vars][1] = args[2];
 			num_env_vars++;
-			//return 1 for error?
+			//return 1 for success?
 		}
 	}
 
 	int sh_printenv(int nargs, char * args[]){
+		if(nargs > 1){
+			//too many args throw error
+		}
 		if(num_env_vars == 0){
 			printf("You currently do not have any environmental variables.");
 		}
 		else{
 			int i;
 			for(i = 0; i < num_env_vars; ++i){
-				printf(env_vars[i][0] + "=" + env_vars[i][1]);
+			char str_output[100]={0};
+			strcpy(str_output, env_vars[i][0]);
+			strcat(str_output, " = ");
+			strcat(str_output, env_vars[i][1]);
+			printf(str_output);
 			}
 		}
 		//always return 1 because never fails?
 	}
 
 	int sh_unsetenv(int nargs, char * args[]){
+		if(nargs > 2){
+			//too many args throw error
+		}
+		if(nargs < 2){
+			//not enough args throw error
+		}
 		int i;
 		for(i = 0; i < num_env_vars; ++i){
-			if(env_vars[i][0] == args[0]){
+			if(env_vars[i][0] == args[1]){
 				int j;
 				for(j = i; j < num_env_vars; ++j){
 					if(j == num_env_vars - 1){
@@ -109,41 +129,71 @@
 		//still return 1 because instructions say ignore non-finds? still print statement?
 	}
 
-	int sh_cd(int nargs, char * args[]){}
+	int sh_cd(int nargs, char * args[]){
+		if(nargs > 2){
+			//too many args throw error
+		}
+		if(nargs == 1){
+			//need to go to home directory
+			//return 1 for success?
+		}
+		else{
+			if (chdir(args[1]) == -1){
+				//path could not be found in directory
+				//return error
+			}
+			else{
+				//changed directories successfully
+				//return 1 for success?
+			}
+		}
+	}
 
 	int sh_alias(int nargs, char * args[]){
+		if(nargs > 3){
+			//too many args throw error
+		}
+		if(nargs < 3){
+			//not enough args throw error
+		}
 		if(MAXALIASES == num_alias){
 			//throw error; cant hold more aliases
 			//return 0 for error?
 		}
 		else{
-			/* 
-			would just the name be in args?
-			then get the cmd from cmdtab?
-			or is cmd in args?
-			/*
-			aliastab[num_alias] = args[1];
-			aliasname[num_alias] = args[0];
+			char* word = args[2];
+			char* word2;
+			char* finalWord;
+			strcpy(word2,&word[1]);
+			strncpy(finalWord,word2,strlen(word2)-1);	//finalword takes off the "" from the arg
+			alias[num_alias][0] = args[1];
+			alias[num_alias][1] = finalWord;
 			num_alias++;
 			//return 1 for success?
 		}
 	}
 
 	int sh_unalias(int nargs, char * args[]){
+		if(nargs < 2){
+			//not enough args throw error
+		}
+		if(nargs > 2){
+			//too many args throw error
+		}
 		int i;
 		for(i = 0; i < num_alias; ++i){
-			if(aliasname[i] == args[0]){
+			if(alias[i][0] == args[1]){
 				int j;
 				for(j = i; j < num_alias; ++j){
 					if(j == num_alias - 1){
-						aliasname[j] = "";
-						aliastab[j] = 0;
+						alias[j][0] = "";
+						alias[j][1] = "";
 						num_alias--;
 						//return 1 for success?
 					}
 					else{
-						aliasname[j] = aliasname[j+1];
-						aliastab[j] = aliastab[j+1];
+						alias[j][0] = alias[j+1][0];
+						alias[j][1] = alias[j+1][1];
 					}
 				}
 			}
@@ -153,9 +203,13 @@
 	}
 	
 	int sh_aliaslist(int nargs, char * args[]){
+		if(nargs > 1){
+			//too many args throw error
+		}
 		int i;
 		for(i = 0; i < num_alias; ++i){
-			printf(aliasname[i] + "\n");
+			printf(alias[i][0]);
+			printf("\n");
 		}
 		//return 1 for success?
 	}
@@ -207,8 +261,15 @@
 
 			/* search non-built-ins */
 			else if(sh_func = xsh_cmdmap(cmd -> cmd_name)){
+				int j;
+				int * pipes[num_cmds];
+
+				for(j = 0; j < num_cmds; ++j){
+
+				}
+
 				/* Test pipe code *//*
-				we have n matched_cmds
+				we have num_cmds matched_cmds
 				create the pipes and put in pipe_list
 				pipe_list = {int pipe_12[2], pipe_23[2], ..., pipe_(n-1)n[2]}
 				pid_list = {int pid_1, pid_2, ..., pid_n}
@@ -276,13 +337,19 @@ command:
 		| command OTHER_TOK			{ $$ = $1; add_args($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK command	{ $$ = $3; init_a_cmd($3);}
-		//change file_out, file_in and stdin,stdout,stderr as appropriate
-		| command redirect 			{ ;}
+		//redirecting already done, just reducing statement
+		| command redirect 			{ $$ = $1;}
 		//execute command in background
 		| command BACKGROUND_TOK 	{ $$ = $1; run_background = TRUE;}
 		//execute the commands that have been defined at end of line, then clears cmdtab
-		| command EOF_TOK			{ execute_cmds(); clear_cmds();}
+		| command EOF_TOK			{ $$ = $1; execute_cmds(); clear_cmds();}
 		;
+
+redirect:
+		//input redirect always occurs first
+		input_redirect { ;}
+		//add on output redirect if existing
+		| redirect output_redirect { ;}//all remaining redirect is output_redirect
 
 input_redirect:
 		//redirect file_in
@@ -295,7 +362,7 @@ output_redirect:
 		//redirect 
 		| INTO_TOK INTO_TOK			{ $$ = $1; append = TRUE;}//append, push back INTO_TOK
 		| STDERR_TOK INTO_TOK STDOUT_TOK	{ ;}//stderr outputs to stdout
-		| STDERR_TOK output_redirect		{ ;}//stderr outputs to file
+		| STDERR_TOK output_redirect		{ ;}//stderr outputs to file_out
 		;
 
 %%
