@@ -52,7 +52,7 @@ extern int yydebug;
     STDERR_TOK = 262,
     BACKGROUND_TOK = 263,
     PIPE_TOK = 264,
-    DUMMY_TOK = 265
+    EOF_TOK = 265
   };
 #endif
 /* Tokens.  */
@@ -63,7 +63,7 @@ extern int yydebug;
 #define STDERR_TOK 262
 #define BACKGROUND_TOK 263
 #define PIPE_TOK 264
-#define DUMMY_TOK 265
+#define EOF_TOK 265
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

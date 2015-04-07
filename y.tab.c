@@ -66,38 +66,276 @@
 
 	#include <stdio.h>
 	#include <stdlib.h>
-
+	#include <unistd.h> 
+	
 	#define YYSTYPE char *
+	#define MAXENVVARS 10
+	#define MAXALIASES 10
+	#define max_pipes 5
+
 	typedef enum { FALSE, TRUE } bool;
+	typedef int(*fptr)(int, char*[]);
 
 	struct a_cmd {
 		char * cmd_name;
-		char * file_out;
-		char * file_in;
 		int nargs;
 		char * args[];
 	};
 
-	struct cmdent {
-		char * cmd_name;
-		// bool built_in;
-		int (*cfunc)(int, char*[]);
-	};
+	char * file_out;	//Redirect STDOUT of final command to file_out
+	char * file_in;		//Redirect STDIN of final command to file_in
+	bool append = FALSE;//Redirect and append STDOUT of final command to file_out
+	bool run_background = FALSE;//Default is to wait for cmds to finish executing
 
-	struct a_cmd init_a_cmd(char * cmd_name){}
-	void clear_a_cmd(){}
+	struct a_cmd * cmdtab[max_pipes];
+	int num_cmds = 0;
+	
+	char* env_vars[MAXENVVARS][2];  //env_vars[0][0] = variable and env_vars[0][1] = word
+	int num_env_vars = 0;
+	
+	struct a_cmd aliastab[MAXALIASES];   //stores the alias cmds
+	char* aliasname[MAXALIASES];  		 //stores the alias names
+	int num_alias = 0;
 
-	//Store a_cmds in cmdtab[] for handling piping commands. 
-	// struct a_cmd cmdtab[];
-	// int num_cmds = 0;
+	/*********************************************/
+	/* init_a_cmd - Initializes a_cmd with given 
+	cmd_name Then pushes the cmd into next free 
+	cmdtab */
+	/*********************************************/
 
-	// //Store all valid command names in cmdmap[]
-	// //[{cmd_name, built-in, function name}, ...]
-	// struct cmdent cmdmap[] = {
-	// 	{"bye", TRUE, exit}
-	// }
+	void init_a_cmd(char * cmd_name){
+		struct a_cmd * cmd = malloc(sizeof * cmd);
+		if(!cmd) //throw mem error
+		cmd -> cmd_name = cmd_name;
+		cmd -> nargs = 0;
+		cmdtab[num_cmds++] = cmd;
+	}
 
-#line 101 "y.tab.c" /* yacc.c:339  */
+	/*********************************************/
+	/* add_args - adds arg to most recently read 
+	cmd in cmdtab */
+	/*********************************************/
+
+	void add_args(char * arg){
+		struct a_cmd * cmd = cmdtab[num_cmds];
+		(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
+	}
+
+	/*********************************************/
+	/* built-in functions
+	/*********************************************/
+
+	int sh_setenv(int nargs, char * args[]){
+		if(MAXENVVARS == num_env_vars){
+			//throw error can't add more into array
+			//return 0 for error?
+		}
+		else{
+			env_vars[num_env_vars][0] = args[0];
+			env_vars[num_env_vars][1] = args[1];
+			num_env_vars++;
+			//return 1 for error?
+		}
+	}
+
+	int sh_printenv(int nargs, char * args[]){
+		if(num_env_vars == 0){
+			printf("You currently do not have any environmental variables.");
+		}
+		else{
+			int i;
+			for(i = 0; i < num_env_vars; ++i){
+				printf(env_vars[i][0] + "=" + env_vars[i][1]);
+			}
+		}
+		//always return 1 because never fails?
+	}
+
+	int sh_unsetenv(int nargs, char * args[]){
+		int i;
+		for(i = 0; i < num_env_vars; ++i){
+			if(env_vars[i][0] == args[0]){
+				int j;
+				for(j = i; j < num_env_vars; ++j){
+					if(j == num_env_vars - 1){
+						env_vars[j][0] = "";
+						env_vars[j][1] = "";
+						num_env_vars--;
+						//return 1 for success?
+					}
+					else{
+						env_vars[j][0] = env_vars[j+1][0];
+						env_vars[j][1] = env_vars[j+1][1];
+					}
+				}
+			}
+		}
+		printf("The variable you entered is not stored.");
+		//still return 1 because instructions say ignore non-finds? still print statement?
+	}
+
+	int sh_cd(int nargs, char * args[]){}
+
+	int sh_alias(int nargs, char * args[]){
+		if(MAXALIASES == num_alias){
+			//throw error; cant hold more aliases
+			//return 0 for error?
+		}
+		else{
+			/* 
+			would just the name be in args?
+			then get the cmd from cmdtab?
+			or is cmd in args?
+			/*
+			aliastab[num_alias] = args[1];
+			aliasname[num_alias] = args[0];
+			num_alias++;
+			//return 1 for success?
+		}
+	}
+
+	int sh_unalias(int nargs, char * args[]){
+		int i;
+		for(i = 0; i < num_alias; ++i){
+			if(aliasname[i] == args[0]){
+				int j;
+				for(j = i; j < num_alias; ++j){
+					if(j == num_alias - 1){
+						aliasname[j] = "";
+						aliastab[j] = 0;
+						num_alias--;
+						//return 1 for success?
+					}
+					else{
+						aliasname[j] = aliasname[j+1];
+						aliastab[j] = aliastab[j+1];
+					}
+				}
+			}
+		}
+		printf("An alias by that name was not found.");
+		//return 0 for failure?
+	}
+	
+	int sh_aliaslist(int nargs, char * args[]){
+		int i;
+		for(i = 0; i < num_alias; ++i){
+			printf(aliasname[i] + "\n");
+		}
+		//return 1 for success?
+	}
+
+	int sh_bye(int nargs, char * args[]){}
+
+	/*********************************************/
+	/*cmdmap - Maps each cmd_name to its proper 
+	function */
+	/*********************************************/
+
+	fptr sh_cmdmap(char * cmd_name){
+		if(cmd_name == "setenv") return &sh_setenv;
+		if(cmd_name == "printenv") return &sh_printenv;
+		if(cmd_name == "unsetenv") return &sh_unsetenv;
+		if(cmd_name == "cd") return &sh_cd;
+		if(cmd_name == "alias") return &sh_alias;
+		if(cmd_name == "unalias") return &sh_unalias;
+		if(cmd_name == "bye") return &sh_bye;
+
+		return 0;
+	}
+
+	fptr xsh_cmdmap(char * cmd_name){
+		if(cmd_name == "ls") return;
+
+		return 0;
+	}
+
+	/*********************************************/
+	/* execute_cmds - executes each command in 
+	cmdtab */
+	/*********************************************/
+
+	void execute_cmds(){
+		int i;
+		int pid;
+		fptr sh_func;
+		struct a_cmd * cmd;
+
+		for(i = 0; i < num_cmds; ++i){
+			cmd = cmdtab[i];
+			
+			/* search built-ins */
+			if(sh_func = sh_cmdmap(cmd -> cmd_name)){
+				//will only be one cmd for built-ins, set a flag after running
+				sh_func(cmd -> nargs, cmd -> args);
+			}
+
+			/* search non-built-ins */
+			else if(sh_func = xsh_cmdmap(cmd -> cmd_name)){
+				int j;
+				int * pipes[num_cmds];
+
+				for(j = 0; j < num_cmds; ++j){
+
+				}
+
+				/* Test pipe code *//*
+				we have num_cmds matched_cmds
+				create the pipes and put in pipe_list
+				pipe_list = {int pipe_12[2], pipe_23[2], ..., pipe_(n-1)n[2]}
+				pid_list = {int pid_1, pid_2, ..., pid_n}
+
+				first cmd case(redirecting STDIN to input_file for pid_1):
+					open file_in for first cmd
+					dup2(fileno(file_in), STDIN_FILENO)
+					fclose(file_in)
+					execute process first process
+					[error handling]
+
+				for (i=2; i < n; ++i) [1-n chosen]:
+					pid_i = fork()
+					if pid_i == child:
+						dup2(pipe_(i-1)i[0], STDIN_FILENO)
+						dup2(pipe_i(i+1)[1], STDOUT_FILENO)
+						==
+						process i reads from process i-1
+						process i writes to process i+1
+						close pipes
+						execute cmd
+						[error handling]
+						exit()
+
+				end case(redirecting STDOUT to output_file for final pid):
+					open file_out for final cmd
+					dup2(fileno(file_out), STDOUT_FILENO)
+					fclose(file_out)
+					execute process final process
+					[error handling]
+
+				if wait for cmds to complete (background_tok)
+					wait() n times
+
+				close pipes
+				*/
+			}
+			
+			else{
+				//no matching cmd found
+			}
+
+		}
+	}
+
+	void clear_cmds(){
+		int i;
+
+		for(i = 0; i < num_cmds; ++i) free(cmdtab[i]);  //release cmd mem for next line of input
+		num_cmds = 0; file_in = 0; file_out = 0;		//reset defaults
+		append = FALSE; run_background = FALSE;
+	}
+
+
+#line 339 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -139,7 +377,7 @@ extern int yydebug;
     STDERR_TOK = 262,
     BACKGROUND_TOK = 263,
     PIPE_TOK = 264,
-    DUMMY_TOK = 265
+    EOF_TOK = 265
   };
 #endif
 /* Tokens.  */
@@ -150,7 +388,7 @@ extern int yydebug;
 #define STDERR_TOK 262
 #define BACKGROUND_TOK 263
 #define PIPE_TOK 264
-#define DUMMY_TOK 265
+#define EOF_TOK 265
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -168,7 +406,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 172 "y.tab.c" /* yacc.c:358  */
+#line 410 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -410,16 +648,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  3
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   22
+#define YYLAST   23
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  11
+#define YYNTOKENS  12
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  5
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  13
+#define YYNRULES  14
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  19
+#define YYNSTATES  21
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -434,7 +672,7 @@ union yyalloc
 static const yytype_uint8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+      11,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -464,10 +702,10 @@ static const yytype_uint8 yytranslate[] =
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,    42,    42,    44,    46,    48,    50,    55,    57,    62,
-      67,    69,    70,    71
+       0,   281,   281,   283,   285,   287,   289,   291,   296,   298,
+     302,   307,   309,   310,   311
 };
 #endif
 
@@ -477,8 +715,9 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "OTHER_TOK", "INTO_TOK", "FROM_TOK",
-  "STDOUT_TOK", "STDERR_TOK", "BACKGROUND_TOK", "PIPE_TOK", "DUMMY_TOK",
-  "$accept", "command", "redirect", "input_redirect", "output_redirect", YY_NULLPTR
+  "STDOUT_TOK", "STDERR_TOK", "BACKGROUND_TOK", "PIPE_TOK", "EOF_TOK",
+  "'\\n'", "$accept", "command", "redirect", "input_redirect",
+  "output_redirect", YY_NULLPTR
 };
 #endif
 
@@ -488,14 +727,14 @@ static const char *const yytname[] =
 static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265
+     265,    10
 };
 # endif
 
-#define YYPACT_NINF -12
+#define YYPACT_NINF -3
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-12)))
+  (!!((Yystate) == (-3)))
 
 #define YYTABLE_NINF -1
 
@@ -506,8 +745,9 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -2,   -12,     0,   -12,   -12,    -2,   -12,    -2,    15,   -12,
-       7,     7,    14,    15,   -12,   -12,   -12,     7,   -12
+      17,    -3,     0,    -3,    -3,    18,    -3,    17,    -3,    10,
+      -3,    -3,     7,     3,    15,    -3,    -3,    -3,    -2,    -3,
+      -3
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -515,20 +755,21 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     2,     0,     1,     3,     0,     6,     0,     5,     7,
-       9,     4,     0,     0,     8,    12,    11,    10,    13
+       0,     2,     0,     1,     3,     0,     6,     0,     7,     5,
+       8,    10,     4,     0,     0,     9,    11,    12,     0,    14,
+      13
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -12,    -1,   -12,   -12,   -11
+      -3,     6,    -3,    -3,     9
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     8,     9,    14
+      -1,     2,     9,    10,    15
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -536,38 +777,39 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-       3,     1,    18,     4,    10,     5,    11,     0,     6,     7,
-       4,    17,     5,     0,     0,     6,     7,     1,    15,    12,
-      16,     0,    13
+       3,    16,    17,     4,    20,     5,    16,    17,     6,     7,
+       4,     8,     5,    12,    13,     6,     7,    14,     8,    18,
+       1,    11,    14,    19
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_uint8 yycheck[] =
 {
-       0,     3,    13,     3,     5,     5,     7,    -1,     8,     9,
-       3,    12,     5,    -1,    -1,     8,     9,     3,     4,     4,
-       6,    -1,     7
+       0,     3,     4,     3,     6,     5,     3,     4,     8,     9,
+       3,    11,     5,     7,     4,     8,     9,     7,    11,     4,
+       3,     3,     7,    14
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     3,    12,     0,     3,     5,     8,     9,    13,    14,
-      12,    12,     4,     7,    15,     4,     6,    12,    15
+       0,     3,    13,     0,     3,     5,     8,     9,    11,    14,
+      15,     3,    13,     4,     7,    16,     3,     4,     4,    16,
+       6
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    11,    12,    12,    12,    12,    12,    13,    13,    14,
-      15,    15,    15,    15
+       0,    12,    13,    13,    13,    13,    13,    13,    14,    14,
+      15,    16,    16,    16,    16
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     2,     3,     2,     2,     1,     2,     2,
-       2,     2,     2,     2
+       0,     2,     1,     2,     3,     2,     2,     2,     1,     2,
+       2,     2,     2,     3,     2
 };
 
 
@@ -1244,79 +1486,85 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 42 "grammar.y" /* yacc.c:1646  */
+#line 281 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); init_a_cmd((yyvsp[0]));}
-#line 1250 "y.tab.c" /* yacc.c:1646  */
+#line 1492 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 44 "grammar.y" /* yacc.c:1646  */
-    { printf("reduced");}
-#line 1256 "y.tab.c" /* yacc.c:1646  */
+#line 283 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[-1]); add_args((yyvsp[0]));}
+#line 1498 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 46 "grammar.y" /* yacc.c:1646  */
-    { ;}
-#line 1262 "y.tab.c" /* yacc.c:1646  */
+#line 285 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]); init_a_cmd((yyvsp[0]));}
+#line 1504 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 48 "grammar.y" /* yacc.c:1646  */
-    { ;}
-#line 1268 "y.tab.c" /* yacc.c:1646  */
+#line 287 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[-1]);}
+#line 1510 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 50 "grammar.y" /* yacc.c:1646  */
-    { ;}
-#line 1274 "y.tab.c" /* yacc.c:1646  */
+#line 289 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[-1]); run_background = TRUE;}
+#line 1516 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 55 "grammar.y" /* yacc.c:1646  */
-    { ;}
-#line 1280 "y.tab.c" /* yacc.c:1646  */
+#line 291 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[-1]); execute_cmds(); clear_cmds();}
+#line 1522 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 57 "grammar.y" /* yacc.c:1646  */
+#line 296 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1286 "y.tab.c" /* yacc.c:1646  */
+#line 1528 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 62 "grammar.y" /* yacc.c:1646  */
+#line 298 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1292 "y.tab.c" /* yacc.c:1646  */
+#line 1534 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 67 "grammar.y" /* yacc.c:1646  */
-    { ;}
-#line 1298 "y.tab.c" /* yacc.c:1646  */
+#line 302 "grammar.y" /* yacc.c:1646  */
+    { file_in = (yyvsp[0]);}
+#line 1540 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 69 "grammar.y" /* yacc.c:1646  */
-    { ;}
-#line 1304 "y.tab.c" /* yacc.c:1646  */
+#line 307 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]); file_out = (yyvsp[0]);}
+#line 1546 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 70 "grammar.y" /* yacc.c:1646  */
-    { ;}
-#line 1310 "y.tab.c" /* yacc.c:1646  */
+#line 309 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[-1]); append = TRUE;}
+#line 1552 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 71 "grammar.y" /* yacc.c:1646  */
+#line 310 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1316 "y.tab.c" /* yacc.c:1646  */
+#line 1558 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 14:
+#line 311 "grammar.y" /* yacc.c:1646  */
+    { ;}
+#line 1564 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1320 "y.tab.c" /* yacc.c:1646  */
+#line 1568 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1544,21 +1792,8 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 74 "grammar.y" /* yacc.c:1906  */
+#line 314 "grammar.y" /* yacc.c:1906  */
 
-
-// const struct cmdent cmdtab[] = {
-// 	{"bye", 	TRUE, 	bye}
-// };
-
-// void setup_table(char * cmd_name){
-// 	printf("found bye");
-// }
-
-// void clear_table(){}
-
-//BUILT-INS:
-//"setenv", "printenv", "unsetenv", "cd", "alias", "unalias", "bye"
 
 //Non-built-ins
 //"cat", "ls", "cp", "mv", "rm", "ln", "mkdir", "chown", "chgrp", "chmod", "rmdir", "find"
