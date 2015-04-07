@@ -3,6 +3,9 @@
 	#include <stdlib.h>
 	#include <unistd.h> 
 	#include <string.h>
+	#include <fcntl.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
 	
 	#define YYSTYPE char *
 	#define MAXENVVARS 10
@@ -98,7 +101,7 @@
 			//too many args throw error
 		}
 		if(num_env_vars == 0){
-			printf("You currently do not have any environmental variables.");
+			printf("You currently do not have any environmental variables.\n");
 		}
 		else{
 			int i;
@@ -229,6 +232,13 @@
 	int sh_bye(int nargs, char * args[]){exit(0);}
 
 	/*********************************************/
+	/* non-built-in functions
+	/*********************************************/
+	int xsh_printtest(int nargs, char * args[]){
+		printf("printing test\n");
+	}
+
+	/*********************************************/
 	/*cmdmap - Maps each cmd_name to its proper 
 	function */
 	/*********************************************/
@@ -246,8 +256,7 @@
 	}
 
 	fptr xsh_cmdmap(char * cmd_name){
-		if(cmd_name == "ls") return;
-
+		if(!strcmp(cmd_name, "printtest")) return &xsh_printtest;
 		return 0;
 	}
 
@@ -273,11 +282,34 @@
 
 			/* search non-built-ins */	
 			else if(a_func = xsh_cmdmap(cmd -> cmd_name)){
+				printf("!!!!!\n");
 				int j;
 				int * pipes[num_cmds];
+				int fd;
 
 				for(j = 0; j < num_cmds; ++j){
+					//create pipes, pidlist
+				}
 
+				if(file_in){
+					fd = open(file_in, O_RDONLY);
+					if (fd != -1){
+						dup2(fd, STDIN_FILENO);
+						close(fd);
+					}
+					else{} //couldnt read from file_in
+				}
+
+				if(file_out){
+					printf("%s", file_out);
+					fd = open(file_out, O_WRONLY);
+					if (fd != -1){
+						printf("got this far\n");
+						dup2(fd, STDOUT_FILENO);
+						close(fd);
+						a_func(cmd -> nargs, cmd -> args);
+					}
+					else{} //couldnt read from file_in
 				}
 
 				/* Test pipe code *//*
@@ -355,15 +387,13 @@ command:
 		//execute command in background
 		| command BACKGROUND_TOK 	{ $$ = $1; run_background = TRUE;}
 		//execute the commands that have been defined at end of line, then clears cmdtab
-		// { $$ = $1; execute_cmds(); clear_cmds(); } is the real cmd
 		| command EOF_TOK			{ $$ = $1; execute_cmds(); clear_cmds(); }
 		;
 
 redirect:
-		//input redirect always occurs first
 		input_redirect { ;}
-		//add on output redirect if existing
-		| redirect output_redirect { ;}//all remaining redirect is output_redirect
+		| output_redirect { ;}
+		| redirect redirect { ;} //fix allow chaining of redirects later
 
 input_redirect:
 		//redirect file_in
