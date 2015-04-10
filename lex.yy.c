@@ -1817,13 +1817,12 @@ void yyfree (void * ptr )
 
 
 
-int main(void)
-{
-int tok = 1;
-    do {
-    	// if(end_shell == 1) break;
-		tok = yyparse();
-    } while (1);
+int main(void){
+	int tok = 1;
+	prepend_currdir();
+    // do {	}
+		
+    while (tok = yyparse())
     return 0;
 }
 

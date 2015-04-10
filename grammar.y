@@ -12,6 +12,8 @@
 #include "sh_funcs.H"
 #include "cmd_funcs.H"
 
+#include "sh_errs.H"
+
 #define YYSTYPE char *
 
 /*********************************************/
@@ -36,10 +38,16 @@ xsh_funcs.H
 	xsh_currdir, xsh_ls, xsh_echo
 
 sh_funcs.H
+	prepend_currdir
 	sh_setenv, sh_printenv, sh_unsetenv
 	sh_alias, sh_unalias, sh_aliaslist
 	sh_cd, sh_bye
+
+sh_errs.H
+	errs_map
 */	
+
+
 
 %}
 
@@ -60,7 +68,7 @@ command:
 		//execute command in background
 		| command BACKGROUND_TOK 	{ $$ = $1; run_in_background();}
 		//execute the commands that have been defined at end of line, then clears cmdtab
-		| command EOF_TOK			{ $$ = $1; execute_cmds(); clear_cmds(); }
+		| command EOF_TOK			{ $$ = $1; execute_cmds(); clear_cmds(); prepend_currdir();}
 		;
 
 redirect:

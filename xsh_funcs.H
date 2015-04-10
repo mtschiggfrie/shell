@@ -2,8 +2,8 @@
 /* Implemented Non-Built-In Commands
 /**************************************/
 /* currdir() - prints current directory
-ls() - prints sorted subdirectories
-echo(word) - prints string*/
+ls(opt arg) - prints sorted subdirectories
+echo(word) - prints string */
 /**************************************/
 
 extern int alphasort();	//used in ls
@@ -42,7 +42,7 @@ int xsh_ls(int nargs, char * args[]){
 }
 
 int xsh_echo(int nargs, char * args[]){
-	if(nargs > 2)//throw too many args error
-	if(nargs <= 0)//throw too little args error
-	printf("%s\n", args[1]);
+	// if(nargs > 2) return -1; //too many args
+	// if(nargs <= 0) return -2; //too little args
+	printf("%s\n", args[0]);
 }

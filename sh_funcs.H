@@ -1,7 +1,8 @@
 /*****************************************************************/
 /*Implemented Built-In Commands
 /*****************************************************************/
-/* setenv(variable, word) - sets variable to word
+/* prepend_currdir() - internal, prepends currdir prior to command entering 
+setenv(variable, word) - sets variable to word
 printenv() - prints env variables
 cd(dir) - change directory
 alias(name, word) - makes an alias called name with command word
@@ -18,6 +19,13 @@ int num_env_vars = 0;
 
 char* alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
 int num_alias = 0;
+
+int prepend_currdir(){
+	char buff[128];
+	memset(buff,0,sizeof(buff));
+	char *curr_path = getcwd(buff,sizeof(buff));
+	printf("%s: ", curr_path);
+}
 
 int sh_setenv(int nargs, char * args[]){
 	if(nargs > 3){
