@@ -1,12 +1,12 @@
 #define max_pipes 5
 
 typedef enum { FALSE, TRUE } bool;
-typedef int(*fptr)(int, char const*[]);
+typedef int(*fptr)(int, char *[]);
 
 struct a_cmd {
 	char * cmd_name;
 	int nargs;
-	char const * args[];
+	char * args[];
 };
 
 char * file_out;	//Redirect STDOUT of final command to file_out
@@ -69,7 +69,7 @@ void init_a_cmd(char * cmd_name){
 	if(!cmd) //throw mem error
 	cmd -> cmd_name = malloc(100* sizeof (char)); //placeholder 100
 	cmd -> cmd_name = cmd_name;
-	cmd -> nargs = 1;
+	cmd -> nargs = 0;
 	cmdtab[num_cmds++] = cmd;
 	read_cmd = FALSE;
 
@@ -77,6 +77,7 @@ void init_a_cmd(char * cmd_name){
 	char * xsh_func_loc;
 	if(xsh_func_loc = xsh_cmdmap(cmd_name)){
 		(cmd -> args)[0] = xsh_func_loc;
+		cmd -> nargs = 1;
 	}
 }
 

@@ -22,6 +22,7 @@ int xsh_currdir(){
 }
 
 int xsh_ls(int nargs, char * args[]){
+	printf("here");
 	//get current directory
 	char buff[128];
 	memset(buff,0,sizeof(buff));
