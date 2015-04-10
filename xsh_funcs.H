@@ -44,5 +44,6 @@ int xsh_ls(int nargs, char * args[]){
 int xsh_echo(int nargs, char * args[]){
 	// if(nargs > 2) return -1; //too many args
 	// if(nargs <= 0) return -2; //too little args
-	printf("%s\n", args[0]);
+	// printf("%s\n", args[0]);
+	execv("/bin/echo", args);
 }

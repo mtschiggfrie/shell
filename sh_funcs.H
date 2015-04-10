@@ -14,10 +14,10 @@ bye() - prints msg and exits*/
 #define MAXENVVARS 10
 #define MAXALIASES 10
 
-char* env_vars[MAXENVVARS][2];  //env_vars[0][0] = variable and env_vars[0][1] = word
+char const * env_vars[MAXENVVARS][2];  //env_vars[0][0] = variable and env_vars[0][1] = word
 int num_env_vars = 0;
 
-char* alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
+char const * alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
 int num_alias = 0;
 
 int prepend_currdir(){
@@ -27,7 +27,7 @@ int prepend_currdir(){
 	printf("%s: ", curr_path);
 }
 
-int sh_setenv(int nargs, char * args[]){
+int sh_setenv(int nargs, char const * args[]){
 	if(nargs > 3){
 		//too many args throw error
 	}
@@ -48,7 +48,7 @@ int sh_setenv(int nargs, char * args[]){
 	}
 }
 
-int sh_printenv(int nargs, char * args[]){
+int sh_printenv(int nargs, char const * args[]){
 	if(nargs > 1){
 		//too many args throw error
 	}
@@ -66,7 +66,7 @@ int sh_printenv(int nargs, char * args[]){
 	//always return 1 because never fails?
 }
 
-int sh_unsetenv(int nargs, char * args[]){
+int sh_unsetenv(int nargs, char const * args[]){
 	if(nargs > 1){
 		//too many args throw error
 	}
@@ -103,7 +103,7 @@ int sh_unsetenv(int nargs, char * args[]){
 	//still return 1 because instructions say ignore non-finds? still print statement?
 }
 
-int sh_cd(int nargs, char * args[]){
+int sh_cd(int nargs, char const * args[]){
 	if(nargs > 1){
 		//too many args throw error
 	}
@@ -130,44 +130,43 @@ int sh_cd(int nargs, char * args[]){
 			//return error
 		}
 		else{
-			printf("changed path successfully.\n");
 			//return 1 for success?
 		}
 	}
 }
 
-int sh_alias(int nargs, char * args[]){
-	if(nargs == 0){
-		//when alias entered without args, need to pring all current aliases
-		sh_aliaslist(nargs, args);
-		return 1;
-	}
-	if(nargs > 2){
-		//too many args throw error
-	}
-	if(nargs < 2){
-		//not enough args throw error
-	}
-	if(MAXALIASES == num_alias){
-		//throw error; cant hold more aliases
-		//return 0 for error?
-	}
-	else{
-		//storing the word (ex. "cd path") as cd path (without quotes)			
+int sh_alias(int nargs, char const * args[]){
+	// if(nargs == 0){
+	// 	//when alias entered without args, need to pring all current aliases
+	// 	sh_aliaslist(nargs, args);
+	// 	return 1;
+	// }
+	// if(nargs > 2){
+	// 	//too many args throw error
+	// }
+	// if(nargs < 2){
+	// 	//not enough args throw error
+	// }
+	// if(MAXALIASES == num_alias){
+	// 	//throw error; cant hold more aliases
+	// 	//return 0 for error?
+	// }
+	// else{
+	// 	//storing the word (ex. "cd path") as cd path (without quotes)			
 
-		char* finalWord = args[1] + 1;		//take off the first "
-		finalWord[strlen(finalWord)-1] = 0;	//and the last "
+	// 	char* finalWord = args[1] + 1;		//take off the first "
+	// 	finalWord[strlen(finalWord)-1] = 0;	//and the last "
 
-		alias[num_alias][0] = malloc(100);
-		alias[num_alias][0] = args[0];		//store name
-		alias[num_alias][1] = malloc(100);
-		alias[num_alias][1] = finalWord;	//store word (command)
-		num_alias++;
-		//return 1 for success?
-	}
+	// 	alias[num_alias][0] = malloc(100);
+	// 	alias[num_alias][0] = args[0];		//store name
+	// 	alias[num_alias][1] = malloc(100);
+	// 	alias[num_alias][1] = finalWord;	//store word (command)
+	// 	num_alias++;
+	// 	//return 1 for success?
+	// }
 }
 
-int sh_unalias(int nargs, char * args[]){
+int sh_unalias(int nargs, char const * args[]){
 	if(nargs < 2){
 		//not enough args throw error
 	}
@@ -203,7 +202,7 @@ int sh_unalias(int nargs, char * args[]){
 	//return 0 for failure?
 }
 
-int sh_aliaslist(int nargs, char * args[]){
+int sh_aliaslist(int nargs, char const * args[]){
 
 	//this function prints all aliases stored in the alias array
 
@@ -216,7 +215,7 @@ int sh_aliaslist(int nargs, char * args[]){
 	//return 1 for success?
 }
 
-int sh_bye(int nargs, char * args[]){
+int sh_bye(int nargs, char const * args[]){
 	printf("exiting shell!\n");
 	exit(0);
 }

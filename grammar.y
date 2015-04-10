@@ -19,10 +19,13 @@
 /*********************************************/
 /* Bug List */
 /*********************************************/
-/* 1. need to check name not already existing when setenv (set var1 to hello twice and printenv)(maybe not issue)
+/* 
+1. need to check name not already existing when setenv (set var1 to hello twice and printenv)(maybe not issue)
 2. alias word yields segfault (errors should be handled gracefully, not quit shell) 
 3. on non-command should yield no-cmd found error
-4. account for nested aliasing */
+4. account for nested aliasing 
+5. pressing just enter throws Error and exits
+*/
 
 /*********************************************/
 /* Headers */
@@ -32,6 +35,7 @@ cmd_funcs.H
 	run_in_background, set_file_in, set_file_out, run_in_background, do_append
 	init_a_cmd, add_args, init_or_addarg
 	sh_cmdmap, xsh_cmdmap
+	redirect_input, redirect_output
 	execute_cmds, clear_cmds
 
 xsh_funcs.H
@@ -47,7 +51,31 @@ sh_errs.H
 	errs_map
 */	
 
+/*********************************************/
+/* To implement */
+/*********************************************/
+/*
+1. Non-built-in commands:
+	wc (-l,-c,-m,-L,-w)
+	cp
+	rm
+	diff
+	chmod
+	mkdir
+	ff - find files
+	grep
+	more - display file one page at time
+	ps - list processes
+	kill
 
+
+2. All commands optionally take a help arg that displays args
+
+3. Implement built-in-command and non-built-in-command listing
+
+4. stderr redirection
+
+*/
 
 %}
 
@@ -62,7 +90,7 @@ command:
 		//push arg onto argv
 		| command OTHER_TOK			{ $$ = $1; init_or_addarg($2);}
 		//pipe commands, increment cmd argstack to push args to correct argv later
-		| command PIPE_TOK command	{ $$ = $3; init_a_cmd($3);}
+		| command PIPE_TOK OTHER_TOK{ $$ = $3; read_cmd_next(); init_or_addarg($3);}
 		//redirecting already done, just reducing statement
 		| command redirect 			{ $$ = $1;}
 		//execute command in background
