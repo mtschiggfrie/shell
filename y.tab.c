@@ -69,372 +69,26 @@
 	#include <unistd.h> 
 	#include <string.h>
 	#include <fcntl.h>
+	#include <dirent.h>
 	#include <sys/types.h>
 	#include <sys/stat.h>
+
+	#include "xsh_funcs.H"
+	#include "sh_funcs.H"
+	#include "cmd_funcs.H"
 	
 	#define YYSTYPE char *
-	#define MAXENVVARS 10
-	#define MAXALIASES 10
-	#define max_pipes 5
 
-	typedef enum { FALSE, TRUE } bool;
-	typedef int(*fptr)(int, char*[]);
+	/* BUG LIST (each line is something to account for ) *//*
+	1. need to check name not already existing when setenv (set var1 to hello twice and printenv)(maybe not issue)
+	2. alias word yields segfault (errors should be handled gracefully, not quit shell) 
+	3. on non-command should yield no-cmd found error
+	4. account for nested aliasing
 
-	struct a_cmd {
-		char * cmd_name;
-		int nargs;
-		char * args[];
-	};
-
-	char * file_out;	//Redirect STDOUT of final command to file_out
-	char * file_in;		//Redirect STDIN of final command to file_in
-	bool append = FALSE;//Redirect and append STDOUT of final command to file_out
-	bool run_background = FALSE;//Default is to wait for cmds to finish executing
-
-	bool read_cmd = TRUE;//Flag for init_or_addarg to decide which function to call on reading OTHER_TOK
-
-	struct a_cmd * cmdtab[max_pipes];
-	int num_cmds = 0;
-	
-	char* env_vars[MAXENVVARS][2];  //env_vars[0][0] = variable and env_vars[0][1] = word
-	int num_env_vars = 0;
-	
-	char* alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
-	int num_alias = 0;
-
-	/*********************************************/
-	/* init_a_cmd - Initializes a_cmd with given 
-	cmd_name Then pushes the cmd into next free 
-	cmdtab */
-	/* add_args - adds arg to most recently read 
-	cmd in cmdtab */
-	/* init_or_addarg - chooses which f to call */
-	/*********************************************/
-
-	void init_a_cmd(char * cmd_name){
-		struct a_cmd * cmd = malloc(sizeof (struct a_cmd));
-		if(!cmd) //throw mem error
-		cmd -> cmd_name = malloc(100* sizeof (char)); //placeholder 100
-		cmd -> cmd_name = cmd_name;
-		cmd -> nargs = 0;
-		cmdtab[num_cmds++] = cmd;
-	}
-
-	void add_args(char * arg){
-		struct a_cmd * cmd = cmdtab[num_cmds - 1]; //current command
-		(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
-	}
-
-	void init_or_addarg(char * name){
-		if(read_cmd == FALSE){
-			// printf("%s-arg\n", name); 
-			add_args(name);
-		}
-		if(read_cmd == TRUE){
-			// printf("%s-cmd\n", name); 
-			init_a_cmd(name);
-			read_cmd = FALSE;
-		}
-	}
-
-	/*********************************************/
-	/* built-in functions
-	/*********************************************/
+	*/	
 
 
-	int sh_setenv(int nargs, char * args[]){
-		if(nargs > 3){
-			//too many args throw error
-		}
-		if(nargs < 3){
-			//too little args throw error
-		}
-		if(MAXENVVARS == num_env_vars){
-			//throw error; array full
-			//return -1 for error?
-		}
-		else{
-			env_vars[num_env_vars][0] = args[1];
-			env_vars[num_env_vars][1] = args[2];
-			num_env_vars++;
-			//return 1 for success?
-		}
-	}
-
-	int sh_printenv(int nargs, char * args[]){
-		if(nargs > 1){
-			//too many args throw error
-		}
-		if(num_env_vars == 0){
-			printf("You currently do not have any environmental variables.\n");
-		}
-		else{
-			int i;
-			for(i = 0; i < num_env_vars; ++i){
-			char str_output[100]={0};
-			strcpy(str_output, env_vars[i][0]);
-			strcat(str_output, " = ");
-			strcat(str_output, env_vars[i][1]);
-			printf("%s\n", str_output);
-			}
-		}
-		//always return 1 because never fails?
-	}
-
-	int sh_unsetenv(int nargs, char * args[]){
-		if(nargs > 2){
-			//too many args throw error
-		}
-		if(nargs < 2){
-			//not enough args throw error
-		}
-		int i;
-		for(i = 0; i < num_env_vars; ++i){
-			if(env_vars[i][0] == args[1]){
-				int j;
-				for(j = i; j < num_env_vars; ++j){
-					if(j == num_env_vars - 1){
-						env_vars[j][0] = "";
-						env_vars[j][1] = "";
-						num_env_vars--;
-						//return 1 for success?
-					}
-					else{
-						env_vars[j][0] = env_vars[j+1][0];
-						env_vars[j][1] = env_vars[j+1][1];
-					}
-				}
-			}
-		}
-		printf("The variable you entered is not stored.");
-		//still return 1 because instructions say ignore non-finds? still print statement?
-	}
-
-	int sh_cd(int nargs, char * args[]){
-		if(nargs > 2){
-			//too many args throw error
-		}
-		if(nargs == 1){
-			//need to go to home directory
-			//return 1 for success?
-		}
-		else{
-			if (chdir(args[1]) == -1){
-				//path could not be found in directory
-				//return error
-			}
-			else{
-				//changed directories successfully
-				//return 1 for success?
-			}
-		}
-	}
-
-	int sh_alias(int nargs, char * args[]){
-		if(nargs > 3){
-			//too many args throw error
-		}
-		if(nargs < 3){
-			//not enough args throw error
-		}
-		if(MAXALIASES == num_alias){
-			//throw error; cant hold more aliases
-			//return 0 for error?
-		}
-		else{
-			char* word = args[2];
-			char* word2;
-			char* finalWord;
-			strcpy(word2,&word[1]);
-			strncpy(finalWord,word2,strlen(word2)-1);	//finalword takes off the "" from the arg
-			alias[num_alias][0] = args[1];
-			alias[num_alias][1] = finalWord;
-			num_alias++;
-			//return 1 for success?
-		}
-	}
-
-	int sh_unalias(int nargs, char * args[]){
-		if(nargs < 2){
-			//not enough args throw error
-		}
-		if(nargs > 2){
-			//too many args throw error
-		}
-		int i;
-		for(i = 0; i < num_alias; ++i){
-			if(alias[i][0] == args[1]){
-				int j;
-				for(j = i; j < num_alias; ++j){
-					if(j == num_alias - 1){
-						alias[j][0] = "";
-						alias[j][1] = "";
-						num_alias--;
-						//return 1 for success?
-					}
-					else{
-						alias[j][0] = alias[j+1][0];
-						alias[j][1] = alias[j+1][1];
-					}
-				}
-			}
-		}
-		printf("An alias by that name was not found.");
-		//return 0 for failure?
-	}
-	
-	int sh_aliaslist(int nargs, char * args[]){
-		if(nargs > 1){
-			//too many args throw error
-		}
-		int i;
-		for(i = 0; i < num_alias; ++i){
-			printf("%s\n", alias[i][0]);
-		}
-		//return 1 for success?
-	}
-
-	int sh_bye(int nargs, char * args[]){exit(0);}
-
-	/*********************************************/
-	/* non-built-in functions
-	/*********************************************/
-	int xsh_printtest(int nargs, char * args[]){
-		printf("printing test\n");
-	}
-
-	/*********************************************/
-	/*cmdmap - Maps each cmd_name to its proper 
-	function */
-	/*********************************************/
-
-	fptr sh_cmdmap(char * cmd_name){
-		if(!strcmp(cmd_name, "setenv")) return &sh_setenv;
-		if(!strcmp(cmd_name,"printenv")) return &sh_printenv;
-		if(!strcmp(cmd_name, "unsetenv")) return &sh_unsetenv;
-		if(!strcmp(cmd_name, "cd")) return &sh_cd;
-		if(!strcmp(cmd_name, "alias")) return &sh_alias;
-		if(!strcmp(cmd_name, "unalias")) return &sh_unalias;
-		if(!strcmp(cmd_name, "bye")) return &sh_bye;
-
-		return 0;
-	}
-
-	fptr xsh_cmdmap(char * cmd_name){
-		if(!strcmp(cmd_name, "printtest")) return &xsh_printtest;
-		return 0;
-	}
-
-	/*********************************************/
-	/* execute_cmds - executes each command in 
-	cmdtab */
-	/*********************************************/
-
-	void execute_cmds(){
-		int i;
-		int pid;
-		fptr a_func;
-		struct a_cmd * cmd;
-
-		for(i = 0; i < num_cmds; ++i){
-			cmd = cmdtab[i];
-			
-			/* search built-ins */
-			if(a_func = sh_cmdmap(cmd -> cmd_name)){
-				//will only be one cmd for built-ins, set a flag after running
-				a_func(cmd -> nargs, cmd -> args);
-			}
-
-			/* search non-built-ins */	
-			else if(a_func = xsh_cmdmap(cmd -> cmd_name)){
-				printf("!!!!!\n");
-				int j;
-				int * pipes[num_cmds];
-				int fd;
-
-				for(j = 0; j < num_cmds; ++j){
-					//create pipes, pidlist
-				}
-
-				if(file_in){
-					fd = open(file_in, O_RDONLY);
-					if (fd != -1){
-						dup2(fd, STDIN_FILENO);
-						close(fd);
-					}
-					else{} //couldnt read from file_in
-				}
-
-				if(file_out){
-					printf("%s", file_out);
-					fd = open(file_out, O_WRONLY);
-					if (fd != -1){
-						printf("got this far\n");
-						dup2(fd, STDOUT_FILENO);
-						close(fd);
-						a_func(cmd -> nargs, cmd -> args);
-					}
-					else{} //couldnt read from file_in
-				}
-
-				/* Test pipe code *//*
-				we have num_cmds matched_cmds
-				create the pipes and put in pipe_list
-				pipe_list = {int pipe_12[2], pipe_23[2], ..., pipe_(n-1)n[2]}
-				pid_list = {int pid_1, pid_2, ..., pid_n}
-
-				first cmd case(redirecting STDIN to input_file for pid_1):
-					open file_in for first cmd
-					dup2(fileno(file_in), STDIN_FILENO)
-					fclose(file_in)
-					execute process first process
-					[error handling]
-
-				for (i=2; i < n; ++i) [1-n chosen]:
-					pid_i = fork()
-					if pid_i == child:
-						dup2(pipe_(i-1)i[0], STDIN_FILENO)
-						dup2(pipe_i(i+1)[1], STDOUT_FILENO)
-						==
-						process i reads from process i-1
-						process i writes to process i+1
-						close pipes
-						execute cmd
-						[error handling]
-						exit()
-
-				end case(redirecting STDOUT to output_file for final pid):
-					open file_out for final cmd
-					dup2(fileno(file_out), STDOUT_FILENO)
-					fclose(file_out)
-					execute process final process
-					[error handling]
-
-				if wait for cmds to complete (background_tok)
-					wait() n times
-
-				close pipes
-				*/
-			}
-			
-			else{
-				//no matching cmd found
-			}
-
-		}
-	}
-
-	void clear_cmds(){
-		int i;
-
-		for(i = 0; i < num_cmds; ++i) free(cmdtab[i-1]);  //release cmd mem for next line of input
-		num_cmds = 0; file_in = 0; file_out = 0;		//reset defaults
-		append = FALSE; run_background = FALSE;
-		read_cmd = TRUE;
-	}
-
-
-#line 438 "y.tab.c" /* yacc.c:339  */
+#line 92 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -505,7 +159,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 509 "y.tab.c" /* yacc.c:358  */
+#line 163 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -801,10 +455,10 @@ static const yytype_uint8 yytranslate[] =
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint16 yyrline[] =
+static const yytype_uint8 yyrline[] =
 {
-       0,   380,   380,   382,   384,   386,   388,   390,   394,   395,
-     396,   400,   405,   407,   408,   409
+       0,    34,    34,    36,    38,    40,    42,    44,    48,    49,
+      50,    54,    59,    61,    62,    63
 };
 #endif
 
@@ -1586,91 +1240,91 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 380 "grammar.y" /* yacc.c:1646  */
+#line 34 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); init_or_addarg((yyvsp[0]));}
-#line 1592 "y.tab.c" /* yacc.c:1646  */
+#line 1246 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 382 "grammar.y" /* yacc.c:1646  */
+#line 36 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); init_or_addarg((yyvsp[0]));}
-#line 1598 "y.tab.c" /* yacc.c:1646  */
+#line 1252 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 384 "grammar.y" /* yacc.c:1646  */
+#line 38 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); init_a_cmd((yyvsp[0]));}
-#line 1604 "y.tab.c" /* yacc.c:1646  */
+#line 1258 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 386 "grammar.y" /* yacc.c:1646  */
+#line 40 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]);}
-#line 1610 "y.tab.c" /* yacc.c:1646  */
+#line 1264 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 388 "grammar.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[-1]); run_background = TRUE;}
-#line 1616 "y.tab.c" /* yacc.c:1646  */
+#line 42 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[-1]); run_in_background();}
+#line 1270 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 390 "grammar.y" /* yacc.c:1646  */
+#line 44 "grammar.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); execute_cmds(); clear_cmds(); }
-#line 1622 "y.tab.c" /* yacc.c:1646  */
+#line 1276 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 394 "grammar.y" /* yacc.c:1646  */
+#line 48 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1628 "y.tab.c" /* yacc.c:1646  */
+#line 1282 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 395 "grammar.y" /* yacc.c:1646  */
+#line 49 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1634 "y.tab.c" /* yacc.c:1646  */
+#line 1288 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 396 "grammar.y" /* yacc.c:1646  */
+#line 50 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1640 "y.tab.c" /* yacc.c:1646  */
+#line 1294 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 400 "grammar.y" /* yacc.c:1646  */
-    { file_in = (yyvsp[0]);}
-#line 1646 "y.tab.c" /* yacc.c:1646  */
+#line 54 "grammar.y" /* yacc.c:1646  */
+    { set_file_in((yyvsp[0]));}
+#line 1300 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 405 "grammar.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[0]); file_out = (yyvsp[0]);}
-#line 1652 "y.tab.c" /* yacc.c:1646  */
+#line 59 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]); set_file_out((yyvsp[0]));}
+#line 1306 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 407 "grammar.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[-1]); append = TRUE;}
-#line 1658 "y.tab.c" /* yacc.c:1646  */
+#line 61 "grammar.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[-1]); do_append();}
+#line 1312 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 408 "grammar.y" /* yacc.c:1646  */
+#line 62 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1664 "y.tab.c" /* yacc.c:1646  */
+#line 1318 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 409 "grammar.y" /* yacc.c:1646  */
+#line 63 "grammar.y" /* yacc.c:1646  */
     { ;}
-#line 1670 "y.tab.c" /* yacc.c:1646  */
+#line 1324 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1674 "y.tab.c" /* yacc.c:1646  */
+#line 1328 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1898,7 +1552,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 412 "grammar.y" /* yacc.c:1906  */
+#line 66 "grammar.y" /* yacc.c:1906  */
 
 
 //Non-built-ins
