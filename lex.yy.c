@@ -762,7 +762,7 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 #line 20 "lex.l"
-{ yylval = str_copy(yytext, yyleng); return OTHER_TOK; }
+{ yylval = strdup(yytext); return OTHER_TOK; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP

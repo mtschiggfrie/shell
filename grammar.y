@@ -5,12 +5,15 @@
 	#include <string.h>
 	#include <fcntl.h>
 	#include <sys/types.h>
+	#include <dirent.h>
 	#include <sys/stat.h>
 	
 	#define YYSTYPE char *
 	#define MAXENVVARS 10
 	#define MAXALIASES 10
 	#define max_pipes 5
+
+	extern int alphasort();	//used in ls
 
 	typedef enum { FALSE, TRUE } bool;
 	typedef int(*fptr)(int, char*[]);
@@ -89,8 +92,10 @@
 			//return -1 for error?
 		}
 		else{
-			env_vars[num_env_vars][0] = args[1];
-			env_vars[num_env_vars][1] = args[2];
+			env_vars[num_env_vars][0] = malloc(100);
+			env_vars[num_env_vars][0] = args[0];		//store the variable
+			env_vars[num_env_vars][1] = malloc(100);
+			env_vars[num_env_vars][1] = args[1];		//store the word
 			num_env_vars++;
 			//return 1 for success?
 		}
@@ -104,72 +109,96 @@
 			printf("You currently do not have any environmental variables.\n");
 		}
 		else{
-			int i;
-			for(i = 0; i < num_env_vars; ++i){
-			char str_output[100]={0};
-			strcpy(str_output, env_vars[i][0]);
-			strcat(str_output, " = ");
-			strcat(str_output, env_vars[i][1]);
-			printf("%s\n", str_output);
+			int i = 0;
+			for(; i < num_env_vars; i++){
+			printf("%s", env_vars[i][0]);	//prints the variable
+			printf(" = ");
+			printf("%s\n", env_vars[i][1]);	//prints the word
 			}
 		}
 		//always return 1 because never fails?
 	}
 
 	int sh_unsetenv(int nargs, char * args[]){
-		if(nargs > 2){
+		if(nargs > 1){
 			//too many args throw error
 		}
-		if(nargs < 2){
+		if(nargs < 1){
 			//not enough args throw error
 		}
 		int i;
 		for(i = 0; i < num_env_vars; ++i){
-			if(env_vars[i][0] == args[1]){
+		//this for loop goes through the env_vars array and breaks into the
+		//if section when the given variable in args matches the current env_var
+			if(!strcmp(env_vars[i][0], args[0])){
 				int j;
 				for(j = i; j < num_env_vars; ++j){
 					if(j == num_env_vars - 1){
-						env_vars[j][0] = "";
-						env_vars[j][1] = "";
+					//this is when last element in array (nothing after to copy)
+
+						env_vars[j][0] = "";//delete last element (now duplicate)
+						env_vars[j][1] = "";//delete last element (now duplicate)
 						num_env_vars--;
+
 						//return 1 for success?
+						return 1;
 					}
 					else{
+					//we need to move all of the variables and words up one slot
+					//because we took out the old variable and word
 						env_vars[j][0] = env_vars[j+1][0];
 						env_vars[j][1] = env_vars[j+1][1];
 					}
 				}
 			}
 		}
-		printf("The variable you entered is not stored.");
+		printf("The variable you entered is not stored.\n");
 		//still return 1 because instructions say ignore non-finds? still print statement?
 	}
 
 	int sh_cd(int nargs, char * args[]){
-		if(nargs > 2){
+		if(nargs > 1){
 			//too many args throw error
 		}
-		if(nargs == 1){
-			//need to go to home directory
+		if(nargs == 0){
+			chdir(getenv("HOME"));
+
 			//return 1 for success?
+			return 1;
 		}
 		else{
-			if (chdir(args[1]) == -1){
-				//path could not be found in directory
+		//chdir returns -1 if error, else it successfully changed directory
+
+			
+			if(!strcmp(args[0], "..")){
+			// "cd .." was enterned so change directy to one up
+				char *back = "..";
+				chdir(back);
+
+				return 1;
+			}
+
+			if (chdir(args[0]) == -1){
+				printf("Could not change path.\n");
 				//return error
 			}
 			else{
-				//changed directories successfully
+				printf("changed path successfully.\n");
 				//return 1 for success?
 			}
 		}
 	}
 
 	int sh_alias(int nargs, char * args[]){
-		if(nargs > 3){
+		if(nargs == 0){
+			//when alias entered without args, need to pring all current aliases
+			sh_aliaslist(nargs, args);
+			return 1;
+		}
+		if(nargs > 2){
 			//too many args throw error
 		}
-		if(nargs < 3){
+		if(nargs < 2){
 			//not enough args throw error
 		}
 		if(MAXALIASES == num_alias){
@@ -177,13 +206,15 @@
 			//return 0 for error?
 		}
 		else{
-			char* word = args[2];
-			char* word2;
-			char* finalWord;
-			strcpy(word2,&word[1]);
-			strncpy(finalWord,word2,strlen(word2)-1);	//finalword takes off the "" from the arg
-			alias[num_alias][0] = args[1];
-			alias[num_alias][1] = finalWord;
+			//storing the word (ex. "cd path") as cd path (without quotes)			
+
+			char* finalWord = args[1] + 1;		//take off the first "
+			finalWord[strlen(finalWord)-1] = 0;	//and the last "
+
+			alias[num_alias][0] = malloc(100);
+			alias[num_alias][0] = args[0];		//store name
+			alias[num_alias][1] = malloc(100);
+			alias[num_alias][1] = finalWord;	//store word (command)
 			num_alias++;
 			//return 1 for success?
 		}
@@ -198,16 +229,23 @@
 		}
 		int i;
 		for(i = 0; i < num_alias; ++i){
-			if(alias[i][0] == args[1]){
+		//this loop goes through each element in alias array until it matches the name to
+		//the name given through the args
+			if(!strcmp(alias[i][0], args[0])){
 				int j;
 				for(j = i; j < num_alias; ++j){
 					if(j == num_alias - 1){
-						alias[j][0] = "";
-						alias[j][1] = "";
+						alias[j][0] = "";//delete last element (now duplicate)
+						alias[j][1] = "";//delete last element (now duplicate)
 						num_alias--;
+
 						//return 1 for success?
+						return 1;
 					}
 					else{
+					//this moves the elements up 1 position to fill gap of the
+					//removed alias
+
 						alias[j][0] = alias[j+1][0];
 						alias[j][1] = alias[j+1][1];
 					}
@@ -219,12 +257,14 @@
 	}
 	
 	int sh_aliaslist(int nargs, char * args[]){
-		if(nargs > 1){
-			//too many args throw error
-		}
+
+		//this function prints all aliases stored in the alias array
+
 		int i;
 		for(i = 0; i < num_alias; ++i){
-			printf("%s\n", alias[i][0]);
+			printf("%s", alias[i][0]);	//prints the name
+			printf(" = ");
+			printf("%s\n", alias[i][1]);	//prints the word (command w/o quotes)
 		}
 		//return 1 for success?
 	}
@@ -234,6 +274,42 @@
 	/*********************************************/
 	/* non-built-in functions
 	/*********************************************/
+
+	//this function is used to get current directory
+	//should we use this with every line? like real terminals?
+	int  xsh_currdir(){
+		char buff[128];
+		memset(buff,0,sizeof(buff));
+
+		//getcwd = get current working directory
+		//its args are a string and the size of the string
+
+		char *curr_path = getcwd(buff,sizeof(buff));
+		printf("%s\n", curr_path);
+	}
+
+
+	
+	int xsh_ls(int nargs, char * args[]){
+		//get current directory
+		char buff[128];
+		memset(buff,0,sizeof(buff));
+		char *path = getcwd(buff,sizeof(buff));
+
+		//count becomes number of files
+		//files is a structure that holds the info on the directory's files
+		struct dirent **files;
+		int count;
+		count = scandir(path, &files, 0, alphasort);
+
+		int i;
+		for(i = 1; i < count + 1; ++i){
+			//print out each file
+			printf("%s ",files[i-1]->d_name);
+		}
+		printf("\n");
+	}
+
 	int xsh_printtest(int nargs, char * args[]){
 		printf("printing test\n");
 	}
@@ -257,6 +333,9 @@
 
 	fptr xsh_cmdmap(char * cmd_name){
 		if(!strcmp(cmd_name, "printtest")) return &xsh_printtest;
+		if(!strcmp(cmd_name, "ls")) return &xsh_ls;
+		if(!strcmp(cmd_name, "currdir")) return &xsh_currdir;
+
 		return 0;
 	}
 
@@ -273,7 +352,6 @@
 
 		for(i = 0; i < num_cmds; ++i){
 			cmd = cmdtab[i];
-			
 			/* search built-ins */
 			if(a_func = sh_cmdmap(cmd -> cmd_name)){
 				//will only be one cmd for built-ins, set a flag after running
@@ -286,7 +364,8 @@
 				int j;
 				int * pipes[num_cmds];
 				int fd;
-
+				a_func(cmd -> nargs, cmd -> args); //using for ls testing
+				
 				for(j = 0; j < num_cmds; ++j){
 					//create pipes, pidlist
 				}
@@ -307,7 +386,7 @@
 						printf("got this far\n");
 						dup2(fd, STDOUT_FILENO);
 						close(fd);
-						a_func(cmd -> nargs, cmd -> args);
+						// a_func(cmd -> nargs, cmd -> args);
 					}
 					else{} //couldnt read from file_in
 				}
