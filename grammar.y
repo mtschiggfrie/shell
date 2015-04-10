@@ -1,26 +1,45 @@
 %{
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <unistd.h> 
-	#include <string.h>
-	#include <fcntl.h>
-	#include <dirent.h>
-	#include <sys/types.h>
-	#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h> 
+#include <string.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-	#include "xsh_funcs.H"
-	#include "sh_funcs.H"
-	#include "cmd_funcs.H"
-	
-	#define YYSTYPE char *
+#include "xsh_funcs.H"
+#include "sh_funcs.H"
+#include "cmd_funcs.H"
 
-	/* BUG LIST (each line is something to account for ) *//*
-	1. need to check name not already existing when setenv (set var1 to hello twice and printenv)(maybe not issue)
-	2. alias word yields segfault (errors should be handled gracefully, not quit shell) 
-	3. on non-command should yield no-cmd found error
-	4. account for nested aliasing
+#define YYSTYPE char *
 
-	*/	
+/*********************************************/
+/* Bug List */
+/*********************************************/
+/* 1. need to check name not already existing when setenv (set var1 to hello twice and printenv)(maybe not issue)
+2. alias word yields segfault (errors should be handled gracefully, not quit shell) 
+3. on non-command should yield no-cmd found error
+4. account for nested aliasing */
+
+/*********************************************/
+/* Headers */
+/*********************************************/
+/* 
+cmd_funcs.H
+	run_in_background, set_file_in, set_file_out, run_in_background, do_append
+	init_a_cmd, add_args, init_or_addarg
+	sh_cmdmap, xsh_cmdmap
+	execute_cmds, clear_cmds
+
+xsh_funcs.H
+	xsh_currdir, xsh_ls, xsh_echo
+
+sh_funcs.H
+	sh_setenv, sh_printenv, sh_unsetenv
+	sh_alias, sh_unalias, sh_aliaslist
+	sh_cd, sh_bye
+*/	
 
 %}
 
