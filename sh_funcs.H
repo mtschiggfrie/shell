@@ -31,7 +31,7 @@ char * sh_aliasmap(char * a_name){
 	int i;
 	for(i = 0; i < num_alias; ++i){
 		if(!strcmp(a_name, alias[i][0])){
-			return alias[i][1];
+			return alias[i][0];
 		}
 	}
 	return 0;
@@ -165,9 +165,14 @@ int sh_alias(int nargs, char * args[]){
 	 else{
 		char* finalWord;
 
-		if(strchr(args[1], '"') != 0){	//if first char is a quote we need to remove		
+		// if(strchr(args[1], '"') != 0){	//if first char is a quote we need to remove		
 		
-		 	finalWord = args[1] + 1;		//take off the first "
+		//  	finalWord = ++args[1];		//take off the first "
+		//  	finalWord[strlen(finalWord)-1] = 0;	//and the last "	
+		// }
+		printf("%s - args[1]\n", args[1]);
+		if(strchr(args[1], '"') == 0){	//if first char is a quote we need to remove		
+		 	finalWord = ++args[1];		//take off the first "
 		 	finalWord[strlen(finalWord)-1] = 0;	//and the last "	
 		}
 		else{
@@ -177,7 +182,23 @@ int sh_alias(int nargs, char * args[]){
 		 	alias[num_alias][0] = args[0];		//store name
 		 	alias[num_alias][1] = malloc(100);
 	 		alias[num_alias][1] = finalWord;	//store word (command)
-		 	num_alias++;
+		 	
+
+		 	FILE *fp;
+		 	// char * alias_loc = "aliaslist/"; 
+		 	// char alias_loc[100];
+		 	// strcat(alias_loc, "aliasfolder/"); 
+		 	// strcat(alias_loc, alias[num_alias - 1][0]);
+		 	// strcat(alias_loc, ".txt");
+		 	// printf("%s - alias_loc\n", alias_loc);
+		 	// fp = fopen(alias_loc, "w");
+    		// fp = fopen("aliasfolder/var45.txt", "w");
+		 	fp = fopen(alias[num_alias][0], "w");
+		 	// printf("%s - thefinalword\n", finalWord);	
+    		fprintf(fp, "%s", finalWord);
+    		fclose(fp);
+
+    		num_alias++;
 	 }
 }
 

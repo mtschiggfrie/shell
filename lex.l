@@ -4,11 +4,14 @@
 #include <string.h>
 #include "y.tab.h"
 
+extern FILE *yyin;
+
+extern YY_BUFFER_STATE yy_scan_buffer(char *, size_t);
 
 %}
 
 %%
-\"[ A-Za-z_0-9\\\/]*\"           { yylval = strdup(yytext); return OTHER_TOK; }
+\"[ -.A-Za-z_0-9\\\/]*\"           { yylval = strdup(yytext); return OTHER_TOK; }
 ^\$\{[ A-Za-z_0-9\\\/]*\}	 	 { yylval = strdup(yytext); return ENVVAR_TOK;}
 "\>"                             { return INTO_TOK;  }
 "<"                              { return FROM_TOK;  }
@@ -27,18 +30,18 @@ int main(void){
 	int tok = 1;
 
 	prepend_currdir();
-    while (tok = yyparse())
+    while (tok = yyparse());
 
     return 0;
 }
 
 int yywrap(void)
 {
+    yypop_buffer_state();
     return 0;
 }
 
 int yyerror(void)
 {
-    printf("Error\n");
-
+    printf("Error with yytext - %s\n", yytext);
 }
