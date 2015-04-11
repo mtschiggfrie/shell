@@ -452,7 +452,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   28
+#define YYLAST   25
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  13
@@ -461,7 +461,7 @@ union yyalloc
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  19
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  26
+#define YYNSTATES  27
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -549,9 +549,9 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       3,    -3,    -3,    -3,     0,    -3,    -3,    -2,    10,    18,
-      -3,    15,    -3,    -3,    -3,    12,    -3,    -3,    -3,    -3,
-      -3,    17,    -3,    -3,    12,    -3
+       3,    -3,    -3,    -3,     0,    -3,    -3,    -2,    10,    16,
+      -3,    19,    -3,    -3,    -3,    12,    -3,    -3,    -3,    20,
+      -3,    15,    -3,    12,    -3,    -3,    -3
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -560,20 +560,20 @@ static const yytype_int8 yypact[] =
 static const yytype_uint8 yydefact[] =
 {
        0,     2,     3,     4,     0,     1,     5,     0,     0,     0,
-      10,     0,    11,     6,     7,     9,    12,    13,    16,    17,
-      15,     0,    19,     8,    14,    18
+      10,     0,    11,     6,     7,     9,    12,    13,    16,     0,
+      15,     0,     8,    14,    17,    19,    18
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -3,    -3,    20,    -3,    19
+      -3,    -3,    21,    -3,    -3
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     4,    24,    16,    17
+      -1,     4,    23,    16,    17
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -582,15 +582,15 @@ static const yytype_int8 yydefgoto[] =
 static const yytype_uint8 yytable[] =
 {
        5,    18,    19,     6,     7,     8,     1,     9,    10,    11,
-      12,    13,    14,    20,     2,     3,     7,     8,    23,     9,
-      18,    19,    21,    25,    15,     9,     0,     0,    22
+      12,    13,    14,    20,     2,     3,     7,     8,    25,     9,
+      21,    26,    22,    24,     0,    15
 };
 
 static const yytype_int8 yycheck[] =
 {
        0,     3,     4,     3,     4,     5,     3,     7,     8,     9,
       10,    11,    12,     3,    11,    12,     4,     5,     3,     7,
-       3,     4,     4,     6,     4,     7,    -1,    -1,     9
+       4,     6,     3,     3,    -1,     4
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -599,7 +599,7 @@ static const yytype_uint8 yystos[] =
 {
        0,     3,    11,    12,    14,     0,     3,     4,     5,     7,
        8,     9,    10,    11,    12,    15,    16,    17,     3,     4,
-       3,     4,    17,     3,    15,     6
+       3,     4,     3,    15,     3,     3,     6
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
@@ -613,7 +613,7 @@ static const yytype_uint8 yyr1[] =
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     1,     1,     2,     2,     2,     3,     2,
-       2,     2,     1,     1,     2,     2,     2,     2,     3,     2
+       2,     2,     1,     1,     2,     2,     2,     3,     3,     3
 };
 
 
@@ -1375,25 +1375,25 @@ yyreduce:
 
   case 16:
 #line 114 "grammar.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[0]); set_file_out((yyvsp[0]));}
+    { set_file_out((yyvsp[0]));}
 #line 1380 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
 #line 116 "grammar.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[-1]); do_append();}
+    { do_append(); set_file_out((yyvsp[0]));}
 #line 1386 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
 #line 117 "grammar.y" /* yacc.c:1646  */
-    { stderr_to_stdout();}
+    { }
 #line 1392 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
 #line 118 "grammar.y" /* yacc.c:1646  */
-    { ;}
+    { set_file_err((yyvsp[0]));}
 #line 1398 "y.tab.c" /* yacc.c:1646  */
     break;
 
