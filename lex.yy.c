@@ -1819,7 +1819,7 @@ void yyfree (void * ptr )
 
 int main(void){
 	int tok = 1;
-	
+
 	prepend_currdir();
     while (tok = yyparse())
 

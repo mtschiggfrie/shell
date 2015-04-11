@@ -1,5 +1,6 @@
-21 outfoo.txt
-.H
+.
+..
+cmd_funcs.H
 .git
 grammar.y
 hello.exe

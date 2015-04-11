@@ -49,22 +49,25 @@ fptr sh_cmdmap(char * cmd_name){
 }
 
 char * xsh_cmdmap(char * cmd_name){
-	// if(!strcmp(cmd_name, "cat")) return "/bin/cat";
-	// if(!strcmp(cmd_name, "chgrp")) return "/bin/chgrp";
-	// if(!strcmp(cmd_name, "chown")) return "/bin/chown";
-	// if(!strcmp(cmd_name, "cp")) return "/bin/cp";
-	// if(!strcmp(cmd_name, "dir")) return "/bin/dir";
+	if(!strcmp(cmd_name, "cat")) return "/bin/cat";
+	if(!strcmp(cmd_name, "chgrp")) return "/bin/chgrp";
+	if(!strcmp(cmd_name, "chown")) return "/bin/chown";
+	if(!strcmp(cmd_name, "cp")) return "/bin/cp";
+	if(!strcmp(cmd_name, "dir")) return "/bin/dir";
 	if(!strcmp(cmd_name, "echo")) return "/bin/echo";
 	if(!strcmp(cmd_name, "grep")) return "/bin/grep";
 	if(!strcmp(cmd_name, "kill")) return "/bin/kill";
 	if(!strcmp(cmd_name, "ls")) return "/bin/ls";
 	if(!strcmp(cmd_name, "mkdir")) return "/bin/mkdir";
+	if(!strcmp(cmd_name, "more")) return "/bin/more";	
 	if(!strcmp(cmd_name, "ps")) return "/bin/ps";
 	if(!strcmp(cmd_name, "pwd")) return "/bin/pwd";
 	if(!strcmp(cmd_name, "rm")) return "/bin/rm";
 	if(!strcmp(cmd_name, "rmdir")) return "/bin/rmdir";
 	if(!strcmp(cmd_name, "which")) return "/bin/which";
 
+	if(!strcmp(cmd_name, "clear")) return "/usr/bin/clear";
+	if(!strcmp(cmd_name, "man")) return "/usr/bin/man";
 	if(!strcmp(cmd_name, "sort")) return "/usr/bin/sort";
 	if(!strcmp(cmd_name, "wc")) return "/usr/bin/wc";
 
@@ -98,15 +101,9 @@ void init_a_cmd(char * cmd_name){
 }
 
 void add_args(char * const arg){
-
 	struct a_cmd * cmd = cmdtab[num_cmds - 1]; //current command
-
-	printf("~%s - arg to be added at %d\n", arg, cmd -> nargs);
-
 	(cmd -> args)[(cmd -> nargs)] = malloc(sizeof(char*) * 100);
 	(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
-
-	printf("~%s - arg were added at %d\n", (cmd -> args)[(cmd -> nargs) - 1], (cmd -> nargs) - 1);
 }
 
 void init_or_addarg(char * name){
@@ -120,14 +117,42 @@ void read_cmd_next(){ read_cmd = TRUE; }
 /* redirect_input, redirect_output */
 /*********************************************/
 
+void save_input_redirect(){
+	sh_STDIN = dup(STDIN_FILENO);
+	changed_file_in = TRUE;
+}
+
+void save_output_redirect(){
+	sh_STDOUT = dup(STDOUT_FILENO);
+	changed_file_out = TRUE;
+}
+
+void restore_input_redirects(){
+	if(changed_file_in == TRUE){
+		dup2(sh_STDIN, STDIN_FILENO);
+		close(sh_STDIN);
+	}
+}
+
+void restore_output_redirects(){
+	if(changed_file_out == TRUE){
+		dup2(sh_STDOUT, STDOUT_FILENO);
+		close(sh_STDOUT);
+	}
+}
+
+void restore_redirects(){
+	restore_output_redirects();
+	restore_input_redirects();
+}
+
 int redirect_input(char * file_in){
 	int fd;
 	fd = open(file_in, O_RDONLY);
 	if (fd != -1){
-		sh_STDIN = dup(STDIN_FILENO);
+		save_input_redirect();
 		dup2(fd, STDIN_FILENO);
 		close(fd);
-		changed_file_in = TRUE;
 	}
 	else{} //couldnt read from file_in
 }
@@ -136,10 +161,9 @@ int redirect_output(char * file_out){
 	int fd;
 	fd = open(file_out, O_WRONLY);
 	if (fd != -1){
-		sh_STDOUT = dup(STDOUT_FILENO);
+		save_output_redirect();
 		dup2(fd, STDOUT_FILENO);
 		close(fd);
-		changed_file_out = TRUE;
 	}
 	else{} //couldnt read from file_in
 }	
@@ -150,11 +174,11 @@ cmdtab */
 /*********************************************/
 
 void execute_cmds(){
-	int i;
 	pid_t pid;
 	fptr sh_func;
 	char * xsh_func_loc;
 	struct a_cmd * cmd;
+	int j, k;
 
 	if(num_cmds == 0) return;
 		
@@ -167,78 +191,71 @@ void execute_cmds(){
 
 	/* search non-built-ins */	
 	else if(xsh_func_loc = xsh_cmdmap(cmd -> cmd_name)){
-		int pipes[num_cmds][2];
-		pid_t pid_list[num_cmds];
-		int fd;
-		int j, k, l;
-
 		/* If only one command entered */
 		if(num_cmds == 1){
-			pid_list[0] = fork();
-			if(pid_list[0] == 0){
+			pid = fork();
+			if(pid == 0){
 				if(file_in) redirect_input(file_in);
 				if(file_out) redirect_output(file_out);
+
 				execv((char *)xsh_func_loc, (char * const *)(cmd -> args));
 				exit(0);
 			}
+			if(run_background == FALSE) wait();
 		}
 
 		/* If we are pipelining */
-		// else {
-		// 	/* Create pipes */	
-		// 	for(j = 0; j < num_cmds; ++j) pipe(pipes[j]);
+		else {
+			pid_t pid_list[num_cmds];
+			int reading[num_cmds];
+			int writing[num_cmds];
 
-		// 	/* For cmd in cmdtab */
-		// 	for(j = 0; j < num_cmds; ++j){
-		// 		pid_list[j] = fork();
+			/* create pipes */
+			for(j = 0; j < num_cmds - 1; ++j){
+				int a_pipe[2];
+				pipe(a_pipe);
+				reading[j+1] = a_pipe[0];
+				writing[j] = a_pipe[1];
+			}
 
-		// 		/* If the child */
-		// 		if(pid_list[j] == 0){
-		// 			dup2(pipes[j][0], STDIN_FILENO);	//proccess j+1 reads from j
-		// 			dup2(pipes[j+1][1], STDOUT_FILENO); //process j+1 writes to j+2
+			/* For cmd in cmdtab */
+			for(j = 0; j < num_cmds; ++j){
+				cmd = cmdtab[j];
 
-		// 			for(k = 0; k < num_cmds; ++k){
-		// 				for(l = 0; l < 2; ++l){
-		// 					close(pipes[j][l]);
-		// 				}
-		// 			}
-		// 			// sh_func(cmd -> nargs, cmd -> args);
-		// 			// execv("/bin/echo", cmd -> args);
-		// 			//execute cmd
-		// 			exit(0);
-		// 		}
-		// 	}
+				/* search non-built-ins */
+				if(xsh_func_loc = xsh_cmdmap(cmd -> cmd_name)){
+					pid_list[j] = fork();
 
-		// 	/* Close pipes for parent */
-		// 	for(k = 0; k < num_cmds; ++k){
-		// 		for(l = 0; l < 2; ++l){
-		// 			close(pipes[j][l]);
-		// 		}
-		// 	}
-		// }
+					/* If the child */
+					if(pid_list[j] == 0){
+						/* if there is a prev cmd read from pipe j*/
+						if( j > 0){
+							close(STDIN_FILENO);
+							dup2(reading[j], STDIN_FILENO);
+						}
+						else{}
 
-		/* If run_backround then wait for child processes to terminate */
-		if(run_background = TRUE){
-			for(j = 0; j < num_cmds; ++j) wait();
+						/* if there is a next cmd write to pipe j*/
+						if(j < num_cmds - 1){
+							close(STDOUT_FILENO);
+							dup2(writing[j], STDOUT_FILENO);
+						}
+						else{}
+
+						execv((char *)xsh_func_loc, (char * const *)(cmd -> args));
+						exit(0);
+					}
+					if(run_background == FALSE) wait();
+					if( j > 0) close(reading[j]);
+					if( j < num_cmds - 1) close(writing[j]);
+				}
+				else{
+					restore_redirects();
+					printf("No such cmd: %s\n", cmd -> cmd_name);
+					break;//cleanup prev cmds somehow
+				}			
+			}
 		}
-
-		/* Test pipe code *//*
-		pipe_list = {int pipe_12[2], pipe_23[2], ..., pipe_(n-1)n[2]}
-		pid_list = {int pid_1, pid_2, ..., pid_n}
-
-		for (i=2; i < n; ++i) [1-n chosen]:
-			pid_i = fork()
-			if pid_i == child:
-				dup2(pipe_(i-1)i[0], STDIN_FILENO)
-				dup2(pipe_i(i+1)[1], STDOUT_FILENO)
-				==
-				process i reads from process i-1
-				process i writes to process i+1
-				close pipes
-				execute cmd
-				[error handling]
-				exit()
-		*/
 	}
 	
 	else{
@@ -253,19 +270,11 @@ void clear_cmds(){
 	for(i = 0; i < num_cmds; ++i) free(cmdtab[i-1]);
 
 	/* restore STDIN, STDOUT */
-	if(changed_file_in == TRUE){
-		dup2(sh_STDIN, STDIN_FILENO);
-		close(sh_STDIN);
-	}
-	if(changed_file_out == TRUE){
-		dup2(sh_STDOUT, STDOUT_FILENO);
-		close(sh_STDOUT);
-	}
+	restore_redirects();
 
 	/* reset defaults */
 	num_cmds = 0; file_in = 0; file_out = 0;
 	append = FALSE; run_background = FALSE;
 	read_cmd = TRUE;
-	changed_file_in = FALSE, changed_file_out = FALSE;
 }
 

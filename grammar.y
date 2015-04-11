@@ -27,6 +27,8 @@
 5. pressing just enter throws Error and exits
 6. echo name > file prepends name
 7. grep doesn't work
+8. prevent aliasing/envvaring a cmd name
+9. ls <  throws an Error and exits shell
 */
 
 /*********************************************/
@@ -57,20 +59,6 @@ sh_errs.H
 /* To implement */
 /*********************************************/
 /*
-1. Non-built-in commands:
-	wc (-l,-c,-m,-L,-w)
-	cp
-	rm
-	diff
-	chmod
-	mkdir
-	ff - find files
-	grep
-	more - display file one page at time
-	ps - list processes
-	kill
-
-
 2. All commands optionally take a help arg that displays args
 
 3. Implement built-in-command and non-built-in-command listing
