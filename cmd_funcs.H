@@ -153,6 +153,12 @@ void add_args(char * const arg){
 void init_or_addarg(char * name){
 	char * alias_val;
 	if(alias_val = sh_aliasmap(name)){
+		/* if calling unalias, dont transform alias var */
+		if(num_cmds > 0 && !strcmp(cmdtab[0] -> cmd_name, "unalias")){
+			add_args(name);
+			return;
+		}
+
 		FILE * fp = fopen(alias_val, "r");
 		if(fp){
 			YY_BUFFER_STATE new_state = yy_create_buffer(fp, 100);
@@ -290,8 +296,6 @@ void execute_cmds(){
 	if(num_cmds == 0) return;
 		
 	cmd = cmdtab[0];
-
-
 
 	/* search built-ins */
 	if(sh_func = sh_cmdmap(cmd -> cmd_name)){

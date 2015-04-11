@@ -22,38 +22,11 @@ char * prev_path = NULL;		//previous path.... used in cd -
 char * alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
 int num_alias = 0;
 
-extern FILE *yyin;
-extern FILE * first_yyin;
-
 int prepend_currdir(){
 	char buff[128];
 	memset(buff,0,sizeof(buff));
 	char *curr_path = getcwd(buff,sizeof(buff));
 	printf("%s: ", curr_path);
-}
-
-typedef struct yy_buffer_state * YY_BUFFER_STATE;
-extern int yyparse();
-extern YY_BUFFER_STATE yy_create_buffer(FILE *, size_t);
-extern void yy_delete_buffer(YY_BUFFER_STATE);
-extern void yyrestart(FILE *);
- 
-
-extern void yypush_buffer_state ( YY_BUFFER_STATE buffer );
-
-
-int sh_feedfile(int nargs, char * args[]){
-	FILE * fp = fopen(args[0], "r");
-	if(fp){
-		YY_BUFFER_STATE new_state = yy_create_buffer(fp, 1000);
-		yypush_buffer_state(new_state);
-		yyparse();	
-		fclose(fp);
-		
-	}
-	else{
-		printf("file not found\n");
-	}
 }
 
 char * sh_aliasmap(char * a_name){
@@ -102,7 +75,7 @@ int sh_printenv(int nargs, char * args[]){
 		return 0;
 	}
 	if(num_env_vars == 0){
-		printf("You currently do not have any variables.\n");
+		fprintf(stderr, "You currently do not have any variables.\n");
 	}
 	else{
 		int i = 0;
@@ -112,7 +85,7 @@ int sh_printenv(int nargs, char * args[]){
 		printf("%s\n", env_vars[i][1]);	//prints the word
 		}
 	}
-	//always return 1 because never fails?
+	return 1;
 }
 
 int sh_unsetenv(int nargs, char * args[]){
@@ -136,7 +109,6 @@ int sh_unsetenv(int nargs, char * args[]){
 					env_vars[j][1] = "";//delete last element (now duplicate)
 					num_env_vars--;
 
-					//return 1 for success?
 					return 1;
 				}
 				else{
@@ -148,8 +120,8 @@ int sh_unsetenv(int nargs, char * args[]){
 			}
 		}
 	}
-	printf("The variable you entered is not stored.\n");
-	//still return 1 because instructions say ignore non-finds? still print statement?
+	fprintf(stderr, "The variable you entered is not stored.\n");
+	return 1;
 }
 
 int sh_cd(int nargs, char * args[]){
@@ -220,7 +192,7 @@ int sh_cd(int nargs, char * args[]){
 
 	prev_path = xsh_currdir();
 	if (chdir(args[0]) == -1){
-		printf("Could not change path.\n");
+		fprintf(stderr, "Could not change path.\n");
 		return 0;
 	}
 	else{
@@ -254,36 +226,40 @@ int sh_alias(int nargs, char * args[]){
 		}
 	}
 	
-	 if(MAXALIASES == num_alias){
-	 	//throw error; cant hold more aliases
-	 	//return 0 for error?
-		//get rid of this cause no max aliases anymore?
-	 }
-	 else{
-		char* finalWord;
-		finalWord = args[1];	//we dont need to remove quotes
-	 	alias[num_alias][0] = malloc(100);
-	 	alias[num_alias][0] = args[0];		//store name
-	 	alias[num_alias][1] = malloc(100);
- 		alias[num_alias][1] = finalWord;	//store word (command)
+	if(MAXALIASES == num_alias){
+	 	fprintf(stderr, "can't hold any more aliases\n");
+	 	return 0;
+	}
+	char* finalWord;
+	finalWord = args[1];	//we dont need to remove quotes
+ 	alias[num_alias][0] = malloc(100);
+ 	alias[num_alias][0] = args[0];		//store name
+ 	alias[num_alias][1] = malloc(100);
+		alias[num_alias][1] = finalWord;	//store word (command)
 
-	 	FILE *fp;
-	 	fp = fopen(alias[num_alias][0], "w");	
+		/* print alias to a file which is read from to execute the alias */
+ 	FILE *fp;
+ 	fp = fopen(alias[num_alias][0], "w");
+ 	if(fp){	
 		fprintf(fp, "%s", finalWord);
 		fclose(fp);
 
 		num_alias++;
-	 }
+	}
+	else{ 
+		fprintf(stderr, "failed to open aliasfile");
+		return 0;
+	}
+	
+	return 1;
 }
 
 int sh_unalias(int nargs, char * args[]){
 	if(nargs < 1){
-		//not enough args
 		errs_map(-1);
 		return 0;
 	}
 	if(nargs > 1){
-		//too many args throw error
 		errs_map(-2);
 		return 0;
 	}
@@ -299,7 +275,6 @@ int sh_unalias(int nargs, char * args[]){
 					alias[j][1] = "";//delete last element (now duplicate)
 					num_alias--;
 
-					//return 1 for success?
 					return 1;
 				}
 				else{
@@ -312,12 +287,11 @@ int sh_unalias(int nargs, char * args[]){
 			}
 		}
 	}
-	printf("An alias by that name was not found.\n");
-	//return 0 for failure?
+	fprintf(stderr, "An alias by that name was not found.\n");
+	return 0;
 }
 
 int sh_aliaslist(int nargs, char * args[]){
-
 	//this function prints all aliases stored in the alias array
 
 	int i;
@@ -328,8 +302,8 @@ int sh_aliaslist(int nargs, char * args[]){
 		printf("%s\n", alias[i][1]);	//prints the word (command w/o quotes)
 		//return 1 for success?
 	}
-	if(num_alias == 0) printf("No aliases are currently stored.\n");
-	//return -1?
+	if(num_alias == 0) fprintf(stderr, "No aliases are currently stored.\n");
+	return 0;
 }
 
 int sh_bye(int nargs, char * args[]){
