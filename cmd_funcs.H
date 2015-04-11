@@ -21,7 +21,7 @@ bool run_background = FALSE;//Default is to wait for cmds to finish executing
 
 bool read_cmd = TRUE;//Flag for init_or_addarg to decide which function to call on reading OTHER_TOK
 
-int sh_STDIN, sh_STDOUT;//For restoring STDIN, STDOUT after redirects
+int sh_STDIN, sh_STDOUT, sh_STDERR;//For restoring STDIN, STDOUT after redirects
 bool changed_file_in, changed_file_out;//Flags for restoring STDIN, STDOUT after cmd execution
 
 struct a_cmd * cmdtab[max_pipes];
@@ -48,6 +48,7 @@ fptr sh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "alias")) return &sh_alias;
 	if(!strcmp(cmd_name, "unalias")) return &sh_unalias;
 	if(!strcmp(cmd_name, "bye")) return &sh_bye;
+	if(!strcmp(cmd_name, "feedfile")) return &sh_feedfile;
 	// if(!strcmp(cmd_name, "ls")) return &xsh_ls;
 	return 0;
 }
@@ -142,13 +143,10 @@ void add_args(char * const arg){
 
 typedef struct yy_buffer_state * YY_BUFFER_STATE;
 extern int yyparse();
-extern YY_BUFFER_STATE yy_scan_string(char * str);
-extern YY_BUFFER_STATE yy_scan_buffer(char * , size_t);
 extern YY_BUFFER_STATE yy_create_buffer(FILE *, size_t);
 extern void yy_delete_buffer(YY_BUFFER_STATE);
- 
-
 extern void yypush_buffer_state ( YY_BUFFER_STATE buffer );
+
 //create alias makes the alias's val (the cmd) a text file in alias_folder subdirectory
 //match alias_val to "alias_folder/(alias_val).txt" and read input to lex
 
@@ -183,6 +181,10 @@ void save_output_redirect(){
 	changed_file_out = TRUE;
 }
 
+void save_err_redirect(){
+	sh_STDOUT = dup(STDOUT_FILENO);
+}
+
 void restore_input_redirects(){
 	if(changed_file_in == TRUE){
 		dup2(sh_STDIN, STDIN_FILENO);
@@ -197,9 +199,17 @@ void restore_output_redirects(){
 	}
 }
 
+void restore_err_redirects(){
+	if(changed_file_out == TRUE){
+		dup2(sh_STDERR, STDERR_FILENO);
+		close(sh_STDERR);
+	}
+}
+
 void restore_redirects(){
 	restore_output_redirects();
 	restore_input_redirects();
+	restore_err_redirects();
 }
 
 int redirect_input(char * file_in){
@@ -223,6 +233,11 @@ int redirect_output(char * file_out){
 	}
 	else{} //couldnt read from file_in
 }	
+
+void stderr_to_stdout(){
+	save_err_redirect();
+	dup2(STDERR_FILENO, STDOUT_FILENO);
+}
 
 /*********************************************/
 /* execute_cmds - executes each command in 

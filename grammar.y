@@ -114,7 +114,7 @@ output_redirect:
 		INTO_TOK OTHER_TOK			{ $$ = $2; set_file_out($2);}//output_redirect = file_name
 		//redirect 
 		| INTO_TOK INTO_TOK			{ $$ = $1; do_append();}//append, push back INTO_TOK
-		| STDERR_TOK INTO_TOK STDOUT_TOK	{ ;}//stderr outputs to stdout
+		| STDERR_TOK INTO_TOK STDOUT_TOK	{ stderr_to_stdout();}//stderr outputs to stdout
 		| STDERR_TOK output_redirect		{ ;}//stderr outputs to file_out
 		;
 

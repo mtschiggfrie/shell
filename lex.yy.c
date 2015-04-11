@@ -1843,10 +1843,16 @@ void yyfree (void * ptr )
 
 
 
-int main(void){
+int main(int argc, char * argv[]){
 	int tok = 1;
 
-	prepend_currdir();
+	FILE * fp;
+
+	if(argc == 2 && (fp = fopen(argv[1], "r"))){
+		yyin = fp;
+	}
+	else prepend_currdir();
+
     while (tok = yyparse());
 
     return 0;
