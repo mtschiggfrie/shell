@@ -6,7 +6,8 @@ typedef int(*fptr)(int, char *[]);
 struct a_cmd {
 	char * cmd_name;
 	int nargs;
-	char * args[];
+	// char * args[];
+	char * args[1000];
 };
 
 char * file_out;	//Redirect STDOUT of final command to file_out
@@ -96,10 +97,16 @@ void init_a_cmd(char * cmd_name){
 	}
 }
 
-void add_args(char * arg){
+void add_args(char * const arg){
+
 	struct a_cmd * cmd = cmdtab[num_cmds - 1]; //current command
+
+	printf("~%s - arg to be added at %d\n", arg, cmd -> nargs);
+
 	(cmd -> args)[(cmd -> nargs)] = malloc(sizeof(char*) * 100);
 	(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
+
+	printf("~%s - arg were added at %d\n", (cmd -> args)[(cmd -> nargs) - 1], (cmd -> nargs) - 1);
 }
 
 void init_or_addarg(char * name){
@@ -165,24 +172,13 @@ void execute_cmds(){
 		int fd;
 		int j, k, l;
 
-		/* turn cmd -> args into correct format to pass to execv */
-		char * xsh_func_args[cmd -> nargs];
-		for(j = 0; j < cmd -> nargs; ++j){
-			xsh_func_args[j] = (char *)(cmd -> args)[j];
-		}
-		xsh_func_args[cmd -> nargs] = (char *){'\0'};
-
-		// for(j = 0; j < cmd -> nargs; ++j){
-		// 	printf("%s at index %d\n", xsh_func_args[j], j);
-		// }
-
 		/* If only one command entered */
 		if(num_cmds == 1){
 			pid_list[0] = fork();
 			if(pid_list[0] == 0){
 				if(file_in) redirect_input(file_in);
 				if(file_out) redirect_output(file_out);
-				execv((char *)xsh_func_loc, xsh_func_args);
+				execv((char *)xsh_func_loc, (char * const *)(cmd -> args));
 				exit(0);
 			}
 		}
