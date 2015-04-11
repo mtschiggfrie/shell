@@ -125,17 +125,28 @@ void init_a_cmd(char * cmd_name){
 
 void add_args(char * const arg){
 	struct a_cmd * cmd = cmdtab[num_cmds - 1]; //current command
+	if(strchr(arg,'*') != NULL){
+		char ** newarray;
+		newarray = xsh_ls(1,arg);
+		int i;
+		for(i = 0; i < arraynumber; ++i){
+			(cmd -> args)[(cmd -> nargs)] = malloc(sizeof(char*) * 100);
+			(cmd -> args)[(cmd -> nargs)++] = newarray[i];	
+		}
+	}
+	else{
 	(cmd -> args)[(cmd -> nargs)] = malloc(sizeof(char*) * 100);
 	(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
+	}
 }
 
 void init_or_addarg(char * name){
 	char * alias_val;
 	if(alias_val = sh_aliasmap(name)){
-		printf("%s - alias_val", alias_val);
+		write(STDIN_FILENO, alias_val, 4);
 	}
 
-	if(read_cmd == FALSE) add_args(name);
+	else if(read_cmd == FALSE) add_args(name);
 	else init_a_cmd(name);
 }
 
@@ -297,12 +308,14 @@ void clear_cmds(){
 
 	/* release cmd mem for next line of input */
 	for(i = 0; i < num_cmds; ++i) free(cmdtab[i-1]);
+	
+	for(i = 0; i < arraynumber; ++i) free(array[i]);
 
 	/* restore STDIN, STDOUT */
 	restore_redirects();
 
 	/* reset defaults */
-	num_cmds = 0; file_in = 0; file_out = 0;
+	num_cmds = 0; file_in = 0; file_out = 0; arraynumber = 0;
 	append = FALSE; run_background = FALSE;
 	read_cmd = TRUE;
 }

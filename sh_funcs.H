@@ -31,7 +31,6 @@ char * sh_aliasmap(char * a_name){
 	int i;
 	for(i = 0; i < num_alias; ++i){
 		if(!strcmp(a_name, alias[i][0])){
-			printf("%s alias value\n", alias[i][1]);
 			return alias[i][1];
 		}
 	}
