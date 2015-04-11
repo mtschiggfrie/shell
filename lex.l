@@ -7,11 +7,17 @@
 extern FILE *yyin;
 
 extern YY_BUFFER_STATE yy_scan_buffer(char *, size_t);
+char * remove_quotes(char * arg){
+	arg = arg + 1;
+	arg[strlen(arg) - 1] = 0;
+	return arg;
+}
 
 %}
 
 %%
-\"[ -.A-Za-z_0-9\\\/]*\"           { yylval = strdup(yytext); return OTHER_TOK; }
+
+\"[ -.A-Za-z_0-9\\\/\><]*\"      { yylval = remove_quotes(strdup(yytext)); return QUOTE_TOK; }
 ^\$\{[ A-Za-z_0-9\\\/]*\}	 	 { yylval = strdup(yytext); return ENVVAR_TOK;}
 "\>"                             { return INTO_TOK;  }
 "<"                              { return FROM_TOK;  }

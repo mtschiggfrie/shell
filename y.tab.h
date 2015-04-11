@@ -53,7 +53,8 @@ extern int yydebug;
     BACKGROUND_TOK = 263,
     PIPE_TOK = 264,
     EOF_TOK = 265,
-    ENVVAR_TOK = 266
+    ENVVAR_TOK = 266,
+    QUOTE_TOK = 267
   };
 #endif
 /* Tokens.  */
@@ -66,6 +67,7 @@ extern int yydebug;
 #define PIPE_TOK 264
 #define EOF_TOK 265
 #define ENVVAR_TOK 266
+#define QUOTE_TOK 267
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -9,25 +9,27 @@ echo(word) - prints string */
 extern int alphasort();	//used in ls
 	char * array[50];
 int arraynumber = 0;
+	char buff[128];
 
 //this function is used to get current directory
 //should we use this with every line? like real terminals?
-int xsh_currdir(){
-	char buff[128];
+char* xsh_currdir(){
+
 	memset(buff,0,sizeof(buff));
 
 	//getcwd = get current working directory
 	//its args are a string and the size of the string
 
-	char *curr_path = getcwd(buff,sizeof(buff));
-	printf("%s\n", curr_path);
+	getcwd(buff, 128);
+	if(buff == NULL) return " ";
+	return buff+1;
 }
 
 char ** xsh_ls(int nargs, char * args){
 	int q;
 	for(q =0; q < strlen(args); ++q){
 		if(args[q] != '*') break;
-		if(q == strlen(args)-1)return array;
+		if(q == strlen(args)-1) args = "*";
 	}
 
 
@@ -128,6 +130,9 @@ char ** xsh_ls(int nargs, char * args){
 
 	
 	int boolNumber = 1;//changes to 0 when need to break from while loop
+	if(currentfile[0] == '\0'){
+		boolNumber = 0;
+	}
 	int success = 0;//0 means not a filename match/1 filename matched
 	int i = 0;//i and j will go through each char in filename from arg and the current filename
 	int j = 0;
