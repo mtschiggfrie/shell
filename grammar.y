@@ -29,6 +29,7 @@
 7. grep doesn't work
 8. prevent aliasing/envvaring a cmd name
 9. ls <  throws an Error and exits shell
+10. la -a | grep hel; throws seg fault (due to ;)
 */
 
 /*********************************************/
@@ -78,11 +79,11 @@ command:
 		//init_a_cmd with cmd_name = OTHER_TOK
 		OTHER_TOK					{ $$ = $1; init_or_addarg($1);}
 		//change ${env_var_name} with its corresponding word and add to init or addarg
-		| ENVVAR_TOK					{ $$ = $1; init_or_addarg(sub_env_var($1));}
+		| ENVVAR_TOK				{ $$ = $1; init_or_addarg(sub_env_var($1));}
 		//push arg onto argv
 		| command OTHER_TOK			{ $$ = $1; init_or_addarg($2);}
 		//subsitute env var for word
-		| command ENVVAR_TOK					{ $$ = $1; init_or_addarg(sub_env_var($2));}
+		| command ENVVAR_TOK		{ $$ = $1; init_or_addarg(sub_env_var($2));}
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK OTHER_TOK{ $$ = $3; read_cmd_next(); init_or_addarg($3);}
 		//redirecting already done, just reducing statement

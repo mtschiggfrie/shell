@@ -1,8 +1,9 @@
 #define max_pipes 5
+#define MAXENVVARS 10
 
 typedef enum { FALSE, TRUE } bool;
 typedef int(*fptr)(int, char *[]);
-#define MAXENVVARS 10
+
 extern int num_env_vars;
 extern char * env_vars[MAXENVVARS][2];
 
@@ -47,7 +48,7 @@ fptr sh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "alias")) return &sh_alias;
 	if(!strcmp(cmd_name, "unalias")) return &sh_unalias;
 	if(!strcmp(cmd_name, "bye")) return &sh_bye;
-	if(!strcmp(cmd_name, "ls")) return &xsh_ls;
+	// if(!strcmp(cmd_name, "ls")) return &xsh_ls;
 	return 0;
 }
 
@@ -60,7 +61,7 @@ char * xsh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "echo")) return "/bin/echo";
 	if(!strcmp(cmd_name, "grep")) return "/bin/grep";
 	if(!strcmp(cmd_name, "kill")) return "/bin/kill";
-	//if(!strcmp(cmd_name, "ls")) return "/bin/ls";
+	if(!strcmp(cmd_name, "ls")) return "/bin/ls";
 	if(!strcmp(cmd_name, "mkdir")) return "/bin/mkdir";
 	if(!strcmp(cmd_name, "more")) return "/bin/more";	
 	if(!strcmp(cmd_name, "ps")) return "/bin/ps";
@@ -129,6 +130,11 @@ void add_args(char * const arg){
 }
 
 void init_or_addarg(char * name){
+	char * alias_val;
+	if(alias_val = sh_aliasmap(name)){
+		printf("%s - alias_val", alias_val);
+	}
+
 	if(read_cmd == FALSE) add_args(name);
 	else init_a_cmd(name);
 }

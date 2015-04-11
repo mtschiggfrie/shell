@@ -141,12 +141,12 @@ int xsh_ls(int nargs, char * args[]){
 	}
 	}
 	}
-int k = 0;
-		printf("\n");
-	for(; k < arraynumber; ++k){
-printf("%s\n",array[k]);
-}
-		return 1;
+	int k = 0;
+			printf("\n");
+		for(; k < arraynumber; ++k){
+	printf("%s\n",array[k]);
+	}
+	return 1;
 
 }
 

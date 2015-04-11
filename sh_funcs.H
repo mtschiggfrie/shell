@@ -27,6 +27,17 @@ int prepend_currdir(){
 	printf("%s: ", curr_path);
 }
 
+char * sh_aliasmap(char * a_name){
+	int i;
+	for(i = 0; i < num_alias; ++i){
+		if(!strcmp(a_name, alias[i][0])){
+			printf("%s alias value\n", alias[i][1]);
+			return alias[i][1];
+		}
+	}
+	return 0;
+}
+
 int sh_setenv(int nargs, char * args[]){
 	if(nargs > 3){
 		//too many args throw error
@@ -214,14 +225,14 @@ int sh_aliaslist(int nargs, char * args[]){
 	//this function prints all aliases stored in the alias array
 
 	int i;
+	// printf("%d - num_alias", num_alias);
 	for(i = 0; i < num_alias; ++i){
 		printf("%s", alias[i][0]);	//prints the name
 		printf(" = ");
 		printf("%s\n", alias[i][1]);	//prints the word (command w/o quotes)
-		return 1;
 		//return 1 for success?
 	}
-	printf("No aliases are currently stored.\n");
+	if(num_alias == 0) printf("No aliases are currently stored.\n");
 	//return -1?
 }
 
