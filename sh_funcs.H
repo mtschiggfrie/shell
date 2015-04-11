@@ -142,34 +142,43 @@ int sh_alias(int nargs, char * args[]){
 	 }
 	 if(nargs > 2){
 	 	//too many args throw error
+		return -1;
 	 }
 	 if(nargs < 2){
 	 	//not enough args throw error
+		return -1;
 	 }
 	 if(MAXALIASES == num_alias){
 	 	//throw error; cant hold more aliases
 	 	//return 0 for error?
 	 }
 	 else{
-	 	//storing the word (ex. "cd path") as cd path (without quotes)			
+		char* finalWord;
 
-	 	char* finalWord = args[1] + 1;		//take off the first "
-	 	finalWord[strlen(finalWord)-1] = 0;	//and the last "
-	 	alias[num_alias][0] = malloc(100);
-	 	alias[num_alias][0] = args[0];		//store name
-	 	alias[num_alias][1] = malloc(100);
-	 	alias[num_alias][1] = finalWord;	//store word (command)
-	 	num_alias++;
-	 	//return 1 for success?
+		if(strchr(args[1], '"') != 0){	//if first char is a quote we need to remove		
+		
+		 	finalWord = args[1] + 1;		//take off the first "
+		 	finalWord[strlen(finalWord)-1] = 0;	//and the last "	
+		}
+		else{
+			finalWord = args[1];	//we dont need to remove quotes
+		}
+		 	alias[num_alias][0] = malloc(100);
+		 	alias[num_alias][0] = args[0];		//store name
+		 	alias[num_alias][1] = malloc(100);
+	 		alias[num_alias][1] = finalWord;	//store word (command)
+		 	num_alias++;
 	 }
 }
 
 int sh_unalias(int nargs, char * args[]){
-	if(nargs < 2){
+	if(nargs < 1){
 		//not enough args throw error
+		return -1;
 	}
-	if(nargs > 2){
+	if(nargs > 1){
 		//too many args throw error
+		return -1;
 	}
 	int i;
 	for(i = 0; i < num_alias; ++i){
@@ -196,7 +205,7 @@ int sh_unalias(int nargs, char * args[]){
 			}
 		}
 	}
-	printf("An alias by that name was not found.");
+	printf("An alias by that name was not found.\n");
 	//return 0 for failure?
 }
 
@@ -209,8 +218,11 @@ int sh_aliaslist(int nargs, char * args[]){
 		printf("%s", alias[i][0]);	//prints the name
 		printf(" = ");
 		printf("%s\n", alias[i][1]);	//prints the word (command w/o quotes)
+		return 1;
+		//return 1 for success?
 	}
-	//return 1 for success?
+	printf("No aliases are currently stored.\n");
+	//return -1?
 }
 
 int sh_bye(int nargs, char * args[]){

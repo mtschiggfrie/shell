@@ -2,6 +2,9 @@
 
 typedef enum { FALSE, TRUE } bool;
 typedef int(*fptr)(int, char *[]);
+#define MAXENVVARS 10
+extern int num_env_vars;
+extern char * env_vars[MAXENVVARS][2];
 
 struct a_cmd {
 	char * cmd_name;
@@ -44,7 +47,7 @@ fptr sh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "alias")) return &sh_alias;
 	if(!strcmp(cmd_name, "unalias")) return &sh_unalias;
 	if(!strcmp(cmd_name, "bye")) return &sh_bye;
-
+	if(!strcmp(cmd_name, "ls")) return &xsh_ls;
 	return 0;
 }
 
@@ -57,7 +60,7 @@ char * xsh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "echo")) return "/bin/echo";
 	if(!strcmp(cmd_name, "grep")) return "/bin/grep";
 	if(!strcmp(cmd_name, "kill")) return "/bin/kill";
-	if(!strcmp(cmd_name, "ls")) return "/bin/ls";
+	//if(!strcmp(cmd_name, "ls")) return "/bin/ls";
 	if(!strcmp(cmd_name, "mkdir")) return "/bin/mkdir";
 	if(!strcmp(cmd_name, "more")) return "/bin/more";	
 	if(!strcmp(cmd_name, "ps")) return "/bin/ps";
@@ -82,6 +85,25 @@ cmdtab */
 cmd in cmdtab */
 /* init_or_addarg - chooses which f to call */
 /*********************************************/
+
+char* sub_env_var(char * name){
+	char * word = malloc(25);
+	word = name + 2;
+	word[strlen(word)-1] = 0;	
+	int i;
+	for(i = 0; i < num_env_vars; ++i){
+
+	//checks to see if the name matches an env var and if does, return the word associated with it
+
+		if(!strcmp(word, env_vars[i][0])){
+			word = env_vars[i][1];
+			return word;
+		}
+	}
+	//not a env var so return error
+return name;
+	
+}
 
 void init_a_cmd(char * cmd_name){
 	struct a_cmd * cmd = malloc(sizeof (struct a_cmd));
@@ -112,6 +134,7 @@ void init_or_addarg(char * name){
 }
 
 void read_cmd_next(){ read_cmd = TRUE; }
+
 
 /*********************************************/
 /* redirect_input, redirect_output */
