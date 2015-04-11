@@ -104,8 +104,6 @@ int sh_unsetenv(int nargs, char * args[]){
 }
 
 int sh_cd(int nargs, char * args[]){
-printf("hello\n");
-printf("%d\n",nargs);
 	if(nargs > 1){
 		//too many args throw error
 		return 1;
