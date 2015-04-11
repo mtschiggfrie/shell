@@ -48,9 +48,24 @@ fptr sh_cmdmap(char * cmd_name){
 }
 
 char * xsh_cmdmap(char * cmd_name){
+	// if(!strcmp(cmd_name, "cat")) return "/bin/cat";
+	// if(!strcmp(cmd_name, "chgrp")) return "/bin/chgrp";
+	// if(!strcmp(cmd_name, "chown")) return "/bin/chown";
+	// if(!strcmp(cmd_name, "cp")) return "/bin/cp";
+	// if(!strcmp(cmd_name, "dir")) return "/bin/dir";
 	if(!strcmp(cmd_name, "echo")) return "/bin/echo";
+	if(!strcmp(cmd_name, "grep")) return "/bin/grep";
+	if(!strcmp(cmd_name, "kill")) return "/bin/kill";
 	if(!strcmp(cmd_name, "ls")) return "/bin/ls";
+	if(!strcmp(cmd_name, "mkdir")) return "/bin/mkdir";
+	if(!strcmp(cmd_name, "ps")) return "/bin/ps";
 	if(!strcmp(cmd_name, "pwd")) return "/bin/pwd";
+	if(!strcmp(cmd_name, "rm")) return "/bin/rm";
+	if(!strcmp(cmd_name, "rmdir")) return "/bin/rmdir";
+	if(!strcmp(cmd_name, "which")) return "/bin/which";
+
+	if(!strcmp(cmd_name, "sort")) return "/usr/bin/sort";
+	if(!strcmp(cmd_name, "wc")) return "/usr/bin/wc";
 
 	return 0;
 }
@@ -149,11 +164,16 @@ void execute_cmds(){
 		int fd;
 		int j, k, l;
 
-		char * xsh_func_args[cmd -> nargs]; //max_commands = 10
-		// xsh_func_args[0] = (char *)(cmd -> args)[0];
-		// xsh_func_args[1] = (char *)(cmd -> args)[1];
-		for(j = 0; j < cmd -> nargs; ++j) xsh_func_args[j] = (char *)(cmd -> args)[j];
+		/* turn cmd -> args into correct format to pass to execv */
+		char * xsh_func_args[cmd -> nargs];
+		for(j = 0; j < cmd -> nargs; ++j){
+			xsh_func_args[j] = (char *)(cmd -> args)[j];
+		}
 		xsh_func_args[cmd -> nargs] = (char *){'\0'};
+
+		// for(j = 0; j < cmd -> nargs; ++j){
+		// 	printf("%s at index %d\n", xsh_func_args[j], j);
+		// }
 
 		/* If only one command entered */
 		if(num_cmds == 1){

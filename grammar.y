@@ -25,6 +25,8 @@
 3. on non-command should yield no-cmd found error
 4. account for nested aliasing 
 5. pressing just enter throws Error and exits
+6. echo name > file prepends name
+7. grep doesn't work
 */
 
 /*********************************************/
