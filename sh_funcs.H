@@ -17,6 +17,8 @@ bye() - prints msg and exits*/
 char * env_vars[MAXENVVARS][2];  //env_vars[0][0] = variable and env_vars[0][1] = word
 int num_env_vars = 0;
 
+char * prev_path = NULL;		//previous path.... used in cd -
+
 char * alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
 int num_alias = 0;
 
@@ -104,34 +106,80 @@ int sh_unsetenv(int nargs, char * args[]){
 }
 
 int sh_cd(int nargs, char * args[]){
-	if(nargs > 1){
-		//too many args throw error
-		return 1;
-	}
-	if(nargs == 0){
-		chdir(getenv("HOME"));
+	if(prev_path == NULL) prev_path = xsh_currdir();
 
+	if(nargs > 1){
+		//doesnt matter
+	}
+
+	if(nargs == 0){
+		prev_path = xsh_currdir();
+		chdir(getenv("HOME"));
 		//return 1 for success?
 		return 1;
 	}
-	else{
-	//chdir returns -1 if error, else it successfully changed directory
-		if(!strcmp(args[0], "..")){
-		// "cd .." was enterned so change directy to one up
-			char *back = "..";
-			chdir(back);
 
-			return 1;
-		}
 
-		if (chdir(args[0]) == -1){
-			printf("Could not change path.\n");
-			//return error
-		}
-		else{
-			//return 1 for success?
-		}
+	char * start = strchr(args[0],'/');
+	if(args[0][0] == '/' && args[0][1] == '\0'){
+		prev_path = xsh_currdir();
+		chdir(start);
+		return 1;
 	}
+	if(start != NULL){
+	//this splits the arg at the first / and then recursively calls the first and second part
+		char * tmp = malloc(100);
+		prev_path = xsh_currdir();
+		strcpy(tmp,prev_path);
+
+		int index;
+		index = (int)(start - args[0]);
+		char * first[1];
+		first[0] = malloc(30);	//first[0] is the part in front of the first /
+		first[0] = args[0];
+		first[0][index] = '\0';
+		char * second[1];	//second[0] is the part behind the first /
+		second[0] = malloc(30);
+		second[0] = args[0]+index+1;
+
+		sh_cd(1,first);
+		sh_cd(1,second);
+
+		prev_path = tmp;
+		return 1;
+	}
+	
+	if(!strcmp(args[0], "..")){
+	// "cd .." was enterned so change directy to one up
+		//char *back = "..";
+		prev_path = xsh_currdir();
+		chdir("..");
+		return 1;
+	}
+	if(!strcmp(args[0], ".")){
+		prev_path = xsh_currdir();
+	//	printf("%s\n",prev_path);
+		return 1;
+	}
+	if(!strcmp(args[0], "-")){
+		char * tmp = malloc(100);
+		strcpy(tmp,prev_path);
+		prev_path = xsh_currdir();
+		chdir("/");
+	//	printf("%s\n",tmp);
+		chdir(tmp);
+		return 1;
+	}
+
+	prev_path = xsh_currdir();
+	if (chdir(args[0]) == -1){
+		printf("Could not change path.\n");
+		//return error
+	}
+	else{
+		//return 1 for success?
+	}
+
 }
 
 int sh_alias(int nargs, char * args[]){
