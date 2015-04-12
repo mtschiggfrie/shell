@@ -24,6 +24,12 @@ int xsh_currdir(){
 }
 
 char ** xsh_ls(int nargs, char * args){
+	int q;
+	for(q =0; q < strlen(args); ++q){
+		if(args[q] != '*') break;
+		if(q == strlen(args)-1)return array;
+	}
+
 
 	//get current directory
 	char buff[128];
@@ -38,12 +44,70 @@ char ** xsh_ls(int nargs, char * args){
 
  	//this splits the arg into word(filename) and the extension(after the last .)
 	int index;
-	char * e = strrchr(args,'.');
-	index = (int)(e - args);
-	char * word = args;
-	word[index] = '\0';
-	char * extension = word+index+1;
 
+	if(strrchr(args,'.') == NULL){
+		char * word = args;
+		index = 0;
+	for(; index < count; ++index){
+	//each file in the current directory
+
+	
+	//these lines split the given file into its filename and extension
+
+	char * fullfile = malloc(30);
+	char * newfile = files[index]->d_name;
+	strcpy(fullfile,newfile);
+	char * currentfile = newfile;	
+
+
+	
+	int boolNumber = 1;//changes to 0 when need to break from while loop
+	if(currentfile[0] == '.') boolNumber = 0;
+	int success = 0;//0 means not a filename match/1 filename matched
+	int i = 0;//i and j will go through each char in filename from arg and the current filename
+	int j = 0;
+	while(boolNumber == 1){
+		if((word[i] == '\0' || word[i+1] == '\0') && currentfile[j] == '\0'){
+			//this is called when both reach the end of the string
+			//means it made it through without a conflict(not a char match)
+			//so break from while and make success 1
+			boolNumber = 0;
+			success = 1;
+		}
+		else if(word[i] == '\0' || currentfile[j] == '\0'){
+			//if one reaches the end before the other, obviously no match... break while
+			boolNumber = 0;
+		}
+		else if(word[i] == currentfile[j]){
+			//when 2 chars match go onto next
+			i++;
+			j++;
+		}
+		else if(word[i] == '*'){
+			//if its a *, that means it can match any char
+			if(word[i+1] == currentfile[j]){
+				//if the char after * matches the current char, move past the *
+				//for exp...  *mp    hmp  obviously * only needed for h
+				i = i + 2;
+			}
+			j++;
+		}
+		else if(word[i] != currentfile[j]){
+			//a missmatch between chars means no match
+			boolNumber = 0;
+		}
+	}
+	if(success == 1){
+		array[arraynumber++] = fullfile;
+	}
+	}
+}
+	else{
+		char * e = strrchr(args,'.');
+		index = (int)(e - args);
+		char * word = args;
+		word[index] = '\0';
+		char * extension = word+index+1;
 
 	index = 2; //skip the . and ..
 	for(; index < count; ++index){
@@ -140,6 +204,7 @@ char ** xsh_ls(int nargs, char * args){
 	}
 	}
 	}
+}
 
 		return array;
 
