@@ -101,6 +101,7 @@ cmd in cmdtab */
 /* init_or_addarg - chooses which f to call */
 /*********************************************/
 
+
 char* sub_env_var(char * name){
 	char * word = malloc(25);
 	word = name + 2;
@@ -152,6 +153,7 @@ void add_args(char * const arg){
 }
 
 void init_or_addarg(char * name){
+
 	char * alias_val;
 	if(alias_val = sh_aliasmap(name)){
 		/* if calling unalias, dont transform alias var */
@@ -402,8 +404,9 @@ void clear_cmds(){
 	/* release cmd mem for next line of input */
 	for(i = 0; i < num_cmds; ++i) free(cmdtab[i-1]);
 	
-	for(i = 0; i < arraynumber; ++i) free(array[i]);
+	for(i = 0; i < arraynumber; ++i) free(array[i-1]);
 
+	
 	/* restore STDIN, STDOUT */
 	restore_redirects();
 

@@ -271,7 +271,6 @@ char * current = array[x];
 		}
 	}
 }*/
-
 		return array;
 
 }
