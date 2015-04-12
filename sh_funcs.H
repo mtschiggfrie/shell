@@ -29,6 +29,16 @@ int prepend_currdir(){
 	printf("%s: ", curr_path);
 }
 
+char * sh_aliasmap(char * a_name){
+	int i;
+	for(i = 0; i < num_alias; ++i){
+		if(!strcmp(a_name, alias[i][0])){
+			return alias[i][0];
+		}
+	}
+	return 0;
+}
+
 int sh_setenv(int nargs, char * args[]){
 	if(nargs > 2){
 		errs_map(-2);
@@ -224,20 +234,18 @@ int sh_alias(int nargs, char * args[]){
 	 }
 	 else{
 		char* finalWord;
+		finalWord = args[1];	//we dont need to remove quotes
+	 	alias[num_alias][0] = malloc(100);
+	 	alias[num_alias][0] = args[0];		//store name
+	 	alias[num_alias][1] = malloc(100);
+ 		alias[num_alias][1] = finalWord;	//store word (command)
 
-		if(strchr(args[1], '"') != 0){	//if first char is a quote we need to remove		
-		
-		 	finalWord = args[1] + 1;		//take off the first "
-		 	finalWord[strlen(finalWord)-1] = 0;	//and the last "	
-		}
-		else{
-			finalWord = args[1];	//we dont need to remove quotes
-		}
-		 	alias[num_alias][0] = malloc(100);
-		 	alias[num_alias][0] = args[0];		//store name
-		 	alias[num_alias][1] = malloc(100);
-	 		alias[num_alias][1] = finalWord;	//store word (command)
-		 	num_alias++;
+	 	FILE *fp;
+	 	fp = fopen(alias[num_alias][0], "w");	
+		fprintf(fp, "%s", finalWord);
+		fclose(fp);
+
+		num_alias++;
 	 }
 }
 
@@ -286,14 +294,14 @@ int sh_aliaslist(int nargs, char * args[]){
 	//this function prints all aliases stored in the alias array
 
 	int i;
+	// printf("%d - num_alias", num_alias);
 	for(i = 0; i < num_alias; ++i){
 		printf("%s", alias[i][0]);	//prints the name
 		printf(" = ");
 		printf("%s\n", alias[i][1]);	//prints the word (command w/o quotes)
-		return 1;
 		//return 1 for success?
 	}
-	printf("No aliases are currently stored.\n");
+	if(num_alias == 0) printf("No aliases are currently stored.\n");
 	//return -1?
 }
 

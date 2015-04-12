@@ -29,6 +29,8 @@
 7. grep doesn't work
 8. prevent aliasing/envvaring a cmd name
 9. ls <  throws an Error and exits shell
+10. la -a | grep hel; throws seg fault (due to ;)
+11. alias var "echo foo | echo bar" throws too many args err
 */
 
 /*********************************************/
