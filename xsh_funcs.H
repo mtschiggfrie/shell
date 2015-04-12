@@ -7,6 +7,8 @@ echo(word) - prints string */
 /**************************************/
 
 extern int alphasort();	//used in ls
+	char * array[50];
+int arraynumber = 0;
 
 //this function is used to get current directory
 //should we use this with every line? like real terminals?
@@ -21,10 +23,7 @@ int xsh_currdir(){
 	printf("%s\n", curr_path);
 }
 
-int xsh_ls(int nargs, char * args[]){
-	//array to return
-	char * array[50];
-	int arraynumber = 0;
+char ** xsh_ls(int nargs, char * args){
 
 	//get current directory
 	char buff[128];
@@ -39,9 +38,9 @@ int xsh_ls(int nargs, char * args[]){
 
  	//this splits the arg into word(filename) and the extension(after the last .)
 	int index;
-	char * e = strrchr(args[0],'.');
-	index = (int)(e - args[0]);
-	char * word = args[0];
+	char * e = strrchr(args,'.');
+	index = (int)(e - args);
+	char * word = args;
 	word[index] = '\0';
 	char * extension = word+index+1;
 
@@ -141,12 +140,8 @@ int xsh_ls(int nargs, char * args[]){
 	}
 	}
 	}
-int k = 0;
-		printf("\n");
-	for(; k < arraynumber; ++k){
-printf("%s\n",array[k]);
-}
-		return 1;
+
+		return array;
 
 }
 

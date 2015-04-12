@@ -47,7 +47,7 @@ fptr sh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "alias")) return &sh_alias;
 	if(!strcmp(cmd_name, "unalias")) return &sh_unalias;
 	if(!strcmp(cmd_name, "bye")) return &sh_bye;
-	if(!strcmp(cmd_name, "ls")) return &xsh_ls;
+	//if(!strcmp(cmd_name, "ls")) return &xsh_ls;
 	return 0;
 }
 
@@ -60,7 +60,7 @@ char * xsh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "echo")) return "/bin/echo";
 	if(!strcmp(cmd_name, "grep")) return "/bin/grep";
 	if(!strcmp(cmd_name, "kill")) return "/bin/kill";
-	//if(!strcmp(cmd_name, "ls")) return "/bin/ls";
+	if(!strcmp(cmd_name, "ls")) return "/bin/ls";
 	if(!strcmp(cmd_name, "mkdir")) return "/bin/mkdir";
 	if(!strcmp(cmd_name, "more")) return "/bin/more";	
 	if(!strcmp(cmd_name, "ps")) return "/bin/ps";
@@ -124,8 +124,19 @@ void init_a_cmd(char * cmd_name){
 
 void add_args(char * const arg){
 	struct a_cmd * cmd = cmdtab[num_cmds - 1]; //current command
+	if(strchr(arg,'*') != NULL){
+		char ** newarray;
+		newarray = xsh_ls(1,arg);
+		int i;
+		for(i = 0; i < arraynumber; ++i){
+			(cmd -> args)[(cmd -> nargs)] = malloc(sizeof(char*) * 100);
+			(cmd -> args)[(cmd -> nargs)++] = newarray[i];	
+		}
+	}
+	else{
 	(cmd -> args)[(cmd -> nargs)] = malloc(sizeof(char*) * 100);
 	(cmd -> args)[(cmd -> nargs)++] = arg;	//add arg into cmd's args, increment nargs
+	}
 }
 
 void init_or_addarg(char * name){
@@ -291,12 +302,14 @@ void clear_cmds(){
 
 	/* release cmd mem for next line of input */
 	for(i = 0; i < num_cmds; ++i) free(cmdtab[i-1]);
+	
+	for(i = 0; i < arraynumber; ++i) free(array[i]);
 
 	/* restore STDIN, STDOUT */
 	restore_redirects();
 
 	/* reset defaults */
-	num_cmds = 0; file_in = 0; file_out = 0;
+	num_cmds = 0; file_in = 0; file_out = 0; arraynumber = 0;
 	append = FALSE; run_background = FALSE;
 	read_cmd = TRUE;
 }
