@@ -82,6 +82,7 @@ char * xsh_cmdmap(char * cmd_name){
 	if(!strcmp(cmd_name, "clear")) return "/usr/bin/clear";
 	if(!strcmp(cmd_name, "man")) return "/usr/bin/man";
 	if(!strcmp(cmd_name, "sort")) return "/usr/bin/sort";
+	if(!strcmp(cmd_name, "tr")) return "/usr/bin/tr";
 	if(!strcmp(cmd_name, "wc")) return "/usr/bin/wc";
 
 	return 0;
@@ -166,7 +167,7 @@ void init_or_addarg(char * name){
 			yyparse();	
 			fclose(fp);
 		}
-		else{fprintf(stderr, "%s couldn't open alias file\n", alias_val);}
+		else{fprintf(stderr, "%s couldn't open alias file at line no %d\n", alias_val, __LINE__);}
 	}
 
 	else if(read_cmd == FALSE) add_args(name);
@@ -232,7 +233,7 @@ int redirect_input(char * file_in){
 		close(fd);
 	}
 	else{
-		fprintf(stderr, "%s file wasn't found\n", file_in);
+		fprintf(stderr, "%s file wasn't found at line no%d\n", file_in, __LINE__);
 		return -1;
 	}
 	return 0;
@@ -254,7 +255,7 @@ int redirect_output(char * file_out){
 		close(fd);
 	}
 	else{
-		fprintf(stderr, "%s file wasn't found\n", file_out);
+		fprintf(stderr, "%s file wasn't found at line no %d\n", file_out, __LINE__);
 		return -1;
 	}
 	return 0; 
@@ -269,7 +270,7 @@ int redirect_err(char * file_err){
 		close(fd);
 	}
 	else{
-		fprintf(stderr, "%s file wasn't found\n", file_err);
+		fprintf(stderr, "%s file wasn't found at line no %d\n", file_err, __LINE__);
 		return -1;
 	}
 	return 0;
@@ -300,7 +301,7 @@ void execute_cmds(){
 	/* search built-ins */
 	if(sh_func = sh_cmdmap(cmd -> cmd_name)){
 		if(num_cmds > 1){
-			fprintf(stderr, "err: Tried to pipe built-ins\n");
+			fprintf(stderr, "err: Tried to pipe built-ins at line no %d\n", __LINE__);
 			return;
 		}
 		sh_func(cmd -> nargs, cmd -> args);	//run matched sh_func
@@ -328,7 +329,7 @@ void execute_cmds(){
 				exit(0);
 			}
 			if(pid < 0){
-				fprintf(stderr, "error creating process\n");
+				fprintf(stderr, "error creating process at line no %d\n", __LINE__);
 				return;
 			}
 			if(run_background == FALSE) wait();
@@ -376,14 +377,14 @@ void execute_cmds(){
 						exit(0);
 					}
 					if(pid_list[j] < 0){
-						fprintf(stderr, "error creating process\n");
+						fprintf(stderr, "error creating process at line no %d\n", __LINE__);
 					}
 					if(run_background == FALSE) wait();
 					if( j > 0) close(reading[j]);
 					if( j < num_cmds - 1) close(writing[j]);
 				}
 				else{
-					fprintf(stderr, "No such cmd or trying to pipeline built-in with: %s\n", cmd -> cmd_name);
+					fprintf(stderr, "No such cmd or trying to pipeline built-in with: %s at line no %d\n", cmd -> cmd_name, __LINE__);
 					return;
 				}			
 			}
@@ -391,7 +392,7 @@ void execute_cmds(){
 	}
 	
 	else{
-		fprintf(stderr, "No such cmd: %s\n", cmd -> cmd_name);
+		fprintf(stderr, "No such cmd: %s with line no %d\n", cmd -> cmd_name, __LINE__);
 	}
 }
 

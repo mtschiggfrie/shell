@@ -1,5 +1,7 @@
-echo foo
-echo "echo foo expected foo"
+cmd_funcs.H
+sh_funcs.H
+xsh_funcs.H
+o"
 echo foo | echo bar
 echo "echo foo | echo bar expected bar"
 ls -a

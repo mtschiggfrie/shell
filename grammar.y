@@ -98,7 +98,7 @@ output_redirect:
 		INTO_TOK OTHER_TOK			{ set_file_out($2);}//output_redirect = file_name
 		//redirect
 		| INTO_TOK INTO_TOK	OTHER_TOK		{ do_append(); set_file_out($3);}//append, push back INTO_TOK
-		| STDERR_TOK INTO_TOK STDOUT_TOK	{ }//stderr_to_stdout();}//stderr outputs to stdout
+		| STDERR_TOK INTO_TOK STDOUT_TOK	{ stderr_to_stdout();}//stderr outputs to stdout
 		| STDERR_TOK INTO_TOK OTHER_TOK		{ set_file_err($3);}//stderr outputs to file_out
 		;
 

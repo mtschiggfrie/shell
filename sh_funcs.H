@@ -75,7 +75,7 @@ int sh_printenv(int nargs, char * args[]){
 		return 0;
 	}
 	if(num_env_vars == 0){
-		fprintf(stderr, "You currently do not have any variables.\n");
+		fprintf(stderr, "You currently do not have any variables. Line no %d\n", __LINE__);
 	}
 	else{
 		int i = 0;
@@ -120,7 +120,7 @@ int sh_unsetenv(int nargs, char * args[]){
 			}
 		}
 	}
-	fprintf(stderr, "The variable you entered is not stored.\n");
+	fprintf(stderr, "The variable you entered is not stored. Line no %d\n", __LINE__);
 	return 1;
 }
 
@@ -192,7 +192,7 @@ int sh_cd(int nargs, char * args[]){
 
 	prev_path = xsh_currdir();
 	if (chdir(args[0]) == -1){
-		fprintf(stderr, "Could not change path.\n");
+		fprintf(stderr, "Could not change path. Line no %d\n", __LINE__);
 		return 0;
 	}
 	else{
@@ -227,7 +227,7 @@ int sh_alias(int nargs, char * args[]){
 	}
 	
 	if(MAXALIASES == num_alias){
-	 	fprintf(stderr, "can't hold any more aliases\n");
+	 	fprintf(stderr, "can't hold any more aliases at line no %d\n", __LINE__);
 	 	return 0;
 	}
 	char* finalWord;
@@ -247,7 +247,7 @@ int sh_alias(int nargs, char * args[]){
 		num_alias++;
 	}
 	else{ 
-		fprintf(stderr, "failed to open aliasfile");
+		fprintf(stderr, "failed to open aliasfile at line no %d", __LINE__);
 		return 0;
 	}
 	
@@ -287,7 +287,7 @@ int sh_unalias(int nargs, char * args[]){
 			}
 		}
 	}
-	fprintf(stderr, "An alias by that name was not found.\n");
+	fprintf(stderr, "An alias by that name was not found. Line no %d\n", __LINE__);
 	return 0;
 }
 
@@ -302,7 +302,7 @@ int sh_aliaslist(int nargs, char * args[]){
 		printf("%s\n", alias[i][1]);	//prints the word (command w/o quotes)
 		//return 1 for success?
 	}
-	if(num_alias == 0) fprintf(stderr, "No aliases are currently stored.\n");
+	if(num_alias == 0) fprintf(stderr, "No aliases are currently stored. Line no %d\n", __LINE__);
 	return 0;
 }
 

@@ -1,25 +1,26 @@
 # COP4600 shell
 
-README will organize the current status of project/ideas/non-immediate questions for each other. We can alter/expand the blueprint to keep track of everything or ignore it if we find it unhelpful.
+Eric Kaschalk and Matthew Tschiggfrie
 
-##Blueprint
-TOKENS:
-> \> = INTO_TOK
 
-> < = FROM_TOK
+Features not implemented:
+1. Extra credit
+2. setenv of envvar with colon seperated words or large "..."
+3.
 
-> | = PIPE_TOK
+Features Implemented:
+1. All built-in functions
+2. Non-built-in functions (predefined, thought to be inclusive of main unix commands, included functions defined in xsh_cmdmap in cmd_funcs.H)
+3. Aliases
+4. Env variable expansions
+5. Wildcard matching
+6. Piping of non-built-ins
+7. I/O redirection (input, output, append)
+8. Background running
+9. Graceful error handling (no exiting of shell)
+10.
 
-> & = BACKGROUND_TOK
-
-> 2 = STDERR_TOK
-
-> &1 = STDOUT_TOK
-
-> CMD or ARG or PARAM or FILENAME or "..."='...' = OTHER_TOK
-
-##Current Project Status:
-1. Outline complete
-
-##Needs to be completed:
-1. Everything
+Idiosyncrasies:
+1. Feeding from input file works (./shell.exe < testfile.txt) but doesn't close shell after execution, need to restart shell.
+2. running in the background functions but can cause print statements to come after prepending currdir
+3. 

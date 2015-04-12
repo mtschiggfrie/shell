@@ -1371,7 +1371,7 @@ yyreduce:
 
   case 18:
 #line 101 "grammar.y" /* yacc.c:1646  */
-    { }
+    { stderr_to_stdout();}
 #line 1376 "y.tab.c" /* yacc.c:1646  */
     break;
 
