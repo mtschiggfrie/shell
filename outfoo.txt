@@ -1,1 +1,9 @@
-/usr/bin/wc: agdgkjgdkjg: No such file or directory
+echo foo
+echo "echo foo expected foo"
+echo foo | echo bar
+echo "echo foo | echo bar expected bar"
+ls -a
+echo "going to grep the ls with fun"
+ls -a | grep fun
+echo "and output to outfoo.txt"
+ls -a | grep fun > outfoo.txt

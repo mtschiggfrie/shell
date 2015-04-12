@@ -1,5 +1,4 @@
-echo foo
-echo bar
-ls -a | grep hel
-echo gone
-wc -l | sort < outfoo.txt
+ls
+ls
+cd
+ls
