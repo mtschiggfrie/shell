@@ -69,7 +69,7 @@ sh_errs.H
 
 %}
 
-%token OTHER_TOK INTO_TOK FROM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK EOF_TOK ENVVAR_TOK
+%token OTHER_TOK INTO_TOK FROM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK EOF_TOK ENVVAR_TOK QUOTE_TOK
 
 %%
 
@@ -78,11 +78,15 @@ command:
 		//init_a_cmd with cmd_name = OTHER_TOK
 		OTHER_TOK					{ $$ = $1; init_or_addarg($1);}
 		//change ${env_var_name} with its corresponding word and add to init or addarg
-		| ENVVAR_TOK					{ $$ = $1; init_or_addarg(sub_env_var($1));}
+		| ENVVAR_TOK				{ $$ = $1; init_or_addarg(sub_env_var($1));}
+		//take off the quotes and push to init or addarg
+		| QUOTE_TOK				{ $$ = $1; init_or_addarg($1);}		
 		//push arg onto argv
 		| command OTHER_TOK			{ $$ = $1; init_or_addarg($2);}
 		//subsitute env var for word
-		| command ENVVAR_TOK					{ $$ = $1; init_or_addarg(sub_env_var($2));}
+		| command ENVVAR_TOK			{ $$ = $1; init_or_addarg(sub_env_var($2));}
+		//take off the quotes and push to init or addarg
+		| command QUOTE_TOK			{ $$ = $1; init_or_addarg($2);}	
 		//pipe commands, increment cmd argstack to push args to correct argv later
 		| command PIPE_TOK OTHER_TOK{ $$ = $3; read_cmd_next(); init_or_addarg($3);}
 		//redirecting already done, just reducing statement
