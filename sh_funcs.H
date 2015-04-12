@@ -30,32 +30,42 @@ int prepend_currdir(){
 }
 
 int sh_setenv(int nargs, char * args[]){
-	if(nargs > 3){
-		//too many args throw error
+	if(nargs > 2){
+		errs_map(-2);
+		return 0;
 	}
-	if(nargs < 3){
-		//too little args throw error
+	if(nargs < 2){
+		errs_map(-1);
+		return 0;
 	}
 	if(MAXENVVARS == num_env_vars){
-		//throw error; array full
-		//return -1 for error?
+		errs_map(-6);
+		return 0;
 	}
-	else{
-		env_vars[num_env_vars][0] = malloc(100);
-		env_vars[num_env_vars][0] = args[0];		//store the variable
-		env_vars[num_env_vars][1] = malloc(100);
-		env_vars[num_env_vars][1] = args[1];		//store the word
-		num_env_vars++;
-		//return 1 for success?
+		
+	int i;
+	for(i = 0; i < num_env_vars; ++i){
+		if(!strcmp(env_vars[i][0],args[0])){
+			errs_map(-3);
+			return 0;
+		}
 	}
+
+	env_vars[num_env_vars][0] = malloc(100);
+	env_vars[num_env_vars][0] = args[0];		//store the variable
+	env_vars[num_env_vars][1] = malloc(100);
+	env_vars[num_env_vars][1] = args[1];		//store the word
+	num_env_vars++;
+	return 1;
 }
 
 int sh_printenv(int nargs, char * args[]){
 	if(nargs > 1){
-		//too many args throw error
+		errs_map(-2);
+		return 0;
 	}
 	if(num_env_vars == 0){
-		printf("You currently do not have any environmental variables.\n");
+		printf("You currently do not have any variables.\n");
 	}
 	else{
 		int i = 0;
@@ -70,10 +80,10 @@ int sh_printenv(int nargs, char * args[]){
 
 int sh_unsetenv(int nargs, char * args[]){
 	if(nargs > 1){
-		//too many args throw error
+		errs_map(-2);
 	}
 	if(nargs < 1){
-		//not enough args throw error
+		errs_map(-1);
 	}
 	int i;
 	for(i = 0; i < num_env_vars; ++i){
@@ -115,7 +125,7 @@ int sh_cd(int nargs, char * args[]){
 	if(nargs == 0){
 		prev_path = xsh_currdir();
 		chdir(getenv("HOME"));
-		//return 1 for success?
+
 		return 1;
 	}
 
@@ -174,10 +184,10 @@ int sh_cd(int nargs, char * args[]){
 	prev_path = xsh_currdir();
 	if (chdir(args[0]) == -1){
 		printf("Could not change path.\n");
-		//return error
+		return 0;
 	}
 	else{
-		//return 1 for success?
+		return 1;
 	}
 
 }
@@ -190,15 +200,27 @@ int sh_alias(int nargs, char * args[]){
 	 }
 	 if(nargs > 2){
 	 	//too many args throw error
-		return -1;
+		errs_map(-2);
+		return 0;
 	 }
 	 if(nargs < 2){
 	 	//not enough args throw error
-		return -1;
+		errs_map(-1);
+		return 0;
 	 }
+
+	int i;
+	for(i = 0; i < num_alias; ++i){
+		if(!strcmp(alias[i][0],args[0])){
+			errs_map(-4);
+			return 0;
+		}
+	}
+	
 	 if(MAXALIASES == num_alias){
 	 	//throw error; cant hold more aliases
 	 	//return 0 for error?
+		//get rid of this cause no max aliases anymore?
 	 }
 	 else{
 		char* finalWord;
@@ -221,12 +243,14 @@ int sh_alias(int nargs, char * args[]){
 
 int sh_unalias(int nargs, char * args[]){
 	if(nargs < 1){
-		//not enough args throw error
-		return -1;
+		//not enough args
+		errs_map(-1);
+		return 0;
 	}
 	if(nargs > 1){
 		//too many args throw error
-		return -1;
+		errs_map(-2);
+		return 0;
 	}
 	int i;
 	for(i = 0; i < num_alias; ++i){
