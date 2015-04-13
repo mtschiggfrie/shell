@@ -40,6 +40,7 @@ char * sh_aliasmap(char * a_name){
 }
 
 int sh_setenv(int nargs, char * args[]){
+
 	if(nargs > 2){
 		errs_map(-2);
 		return 0;
