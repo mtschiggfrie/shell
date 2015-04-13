@@ -1,6 +1,1 @@
-ehllo
-asrfdafd
-ytrw
-_funcs.H
-.git
-grammar.y
+/usr/bin/wc: agdgkjgdkjg: No such file or directory

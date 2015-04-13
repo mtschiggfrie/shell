@@ -20,17 +20,13 @@
 /* Bug List */
 /*********************************************/
 /* 
-1. need to check name not already existing when setenv (set var1 to hello twice and printenv)(maybe not issue)
-2. alias word yields segfault (errors should be handled gracefully, not quit shell) 
-3. on non-command should yield no-cmd found error
+
 4. account for nested aliasing 
-5. pressing just enter throws Error and exits
+
 6. echo name > file prepends name
-7. grep doesn't work
+
 8. prevent aliasing/envvaring a cmd name
-9. ls <  throws an Error and exits shell
-10. la -a | grep hel; throws seg fault (due to ;)
-11. alias var "echo foo | echo bar" throws too many args err
+
 */
 
 /*********************************************/
@@ -57,18 +53,6 @@ sh_errs.H
 	errs_map
 */	
 
-/*********************************************/
-/* To implement */
-/*********************************************/
-/*
-2. All commands optionally take a help arg that displays args
-
-3. Implement built-in-command and non-built-in-command listing
-
-4. stderr redirection
-
-*/
-
 %}
 
 %token OTHER_TOK INTO_TOK FROM_TOK STDOUT_TOK STDERR_TOK BACKGROUND_TOK PIPE_TOK EOF_TOK ENVVAR_TOK QUOTE_TOK
@@ -82,11 +66,11 @@ command:
 		//change ${env_var_name} with its corresponding word and add to init or addarg
 		| ENVVAR_TOK				{ $$ = $1; init_or_addarg(sub_env_var($1));}
 		//take off the quotes and push to init or addarg
-		| QUOTE_TOK				{ $$ = $1; init_or_addarg($1);}		
+		| QUOTE_TOK					{ $$ = $1; init_or_addarg($1);}		
 		//push arg onto argv
 		| command OTHER_TOK			{ $$ = $1; init_or_addarg($2);}
 		//subsitute env var for word
-		| command ENVVAR_TOK			{ $$ = $1; init_or_addarg(sub_env_var($2));}
+		| command ENVVAR_TOK		{ $$ = $1; init_or_addarg(sub_env_var($2));}
 		//take off the quotes and push to init or addarg
 		| command QUOTE_TOK			{ $$ = $1; init_or_addarg($2);}	
 		//pipe commands, increment cmd argstack to push args to correct argv later
@@ -111,14 +95,11 @@ input_redirect:
 
 output_redirect:
 		//redirect file_out
-		INTO_TOK OTHER_TOK			{ $$ = $2; set_file_out($2);}//output_redirect = file_name
-		//redirect 
-		| INTO_TOK INTO_TOK			{ $$ = $1; do_append();}//append, push back INTO_TOK
-		| STDERR_TOK INTO_TOK STDOUT_TOK	{ ;}//stderr outputs to stdout
-		| STDERR_TOK output_redirect		{ ;}//stderr outputs to file_out
+		INTO_TOK OTHER_TOK			{ set_file_out($2);}//output_redirect = file_name
+		//redirect
+		| INTO_TOK INTO_TOK	OTHER_TOK		{ do_append(); set_file_out($3);}//append, push back INTO_TOK
+		| STDERR_TOK INTO_TOK STDOUT_TOK	{ }//stderr_to_stdout();}//stderr outputs to stdout
+		| STDERR_TOK INTO_TOK OTHER_TOK		{ set_file_err($3);}//stderr outputs to file_out
 		;
 
 %%
-
-//Non-built-ins
-//"cat", "ls", "cp", "mv", "rm", "ln", "mkdir", "chown", "chgrp", "chmod", "rmdir", "find"

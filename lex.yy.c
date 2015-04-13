@@ -419,7 +419,7 @@ static yyconst flex_int32_t yy_ec[256] =
 static yyconst flex_int32_t yy_meta[21] =
     {   0,
         1,    1,    1,    2,    3,    3,    3,    3,    4,    4,
-        5,    5,    5,    5,    3,    3,    5,    1,    1,    6
+        5,    5,    5,    5,    3,    3,    5,    1,    3,    6
     } ;
 
 static yyconst flex_int16_t yy_base[30] =
@@ -682,8 +682,7 @@ YY_DECL
     
 #line 18 "lex.l"
 
-
-#line 687 "lex.yy.c"
+#line 686 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -769,76 +768,76 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 20 "lex.l"
+#line 19 "lex.l"
 { yylval = remove_quotes(strdup(yytext)); return QUOTE_TOK; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 21 "lex.l"
+#line 20 "lex.l"
 { yylval = strdup(yytext); return ENVVAR_TOK;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 22 "lex.l"
+#line 21 "lex.l"
 { return INTO_TOK;  }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 23 "lex.l"
+#line 22 "lex.l"
 { return FROM_TOK;  }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 24 "lex.l"
+#line 23 "lex.l"
 { return PIPE_TOK;  }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 25 "lex.l"
+#line 24 "lex.l"
 { return BACKGROUND_TOK; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 26 "lex.l"
+#line 25 "lex.l"
 { return STDERR_TOK;  }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 27 "lex.l"
+#line 26 "lex.l"
 { return STDOUT_TOK;  }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 28 "lex.l"
+#line 27 "lex.l"
 { yylval = strdup(yytext); return OTHER_TOK;  }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 29 "lex.l"
+#line 28 "lex.l"
 { yylval = strdup(yytext); return OTHER_TOK;  }
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 30 "lex.l"
+#line 29 "lex.l"
 { return EOF_TOK;  }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 31 "lex.l"
+#line 30 "lex.l"
 {}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 32 "lex.l"
+#line 31 "lex.l"
 {}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 33 "lex.l"
+#line 32 "lex.l"
 ECHO;
 	YY_BREAK
-#line 842 "lex.yy.c"
+#line 841 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1839,14 +1838,20 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 33 "lex.l"
+#line 32 "lex.l"
 
 
 
-int main(void){
+int main(int argc, char * argv[]){
 	int tok = 1;
 
-	prepend_currdir();
+	FILE * fp;
+
+	if(argc == 2 && (fp = fopen(argv[1], "r"))){
+		yyin = fp;
+	}
+	else prepend_currdir();
+
     while (tok = yyparse());
 
     return 0;

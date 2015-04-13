@@ -22,11 +22,38 @@ char * prev_path = NULL;		//previous path.... used in cd -
 char * alias[MAXALIASES][2];  		 //alias[0][0] = name of alias and alias[0][1] = the cmd in a string
 int num_alias = 0;
 
+extern FILE *yyin;
+extern FILE * first_yyin;
+
 int prepend_currdir(){
 	char buff[128];
 	memset(buff,0,sizeof(buff));
 	char *curr_path = getcwd(buff,sizeof(buff));
 	printf("%s: ", curr_path);
+}
+
+typedef struct yy_buffer_state * YY_BUFFER_STATE;
+extern int yyparse();
+extern YY_BUFFER_STATE yy_create_buffer(FILE *, size_t);
+extern void yy_delete_buffer(YY_BUFFER_STATE);
+extern void yyrestart(FILE *);
+ 
+
+extern void yypush_buffer_state ( YY_BUFFER_STATE buffer );
+
+
+int sh_feedfile(int nargs, char * args[]){
+	FILE * fp = fopen(args[0], "r");
+	if(fp){
+		YY_BUFFER_STATE new_state = yy_create_buffer(fp, 1000);
+		yypush_buffer_state(new_state);
+		yyparse();	
+		fclose(fp);
+		
+	}
+	else{
+		printf("file not found\n");
+	}
 }
 
 char * sh_aliasmap(char * a_name){
