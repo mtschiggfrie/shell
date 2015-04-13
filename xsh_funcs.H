@@ -7,7 +7,7 @@ echo(word) - prints string */
 /**************************************/
 
 extern int alphasort();	//used in ls
-	char * array[50];
+	char * array[100];
 int arraynumber = 0;
 	char buff[128];
 
@@ -117,7 +117,12 @@ char ** xsh_ls(int nargs, char * args){
 		}
 	}
 	if(success == 1){
-		array[arraynumber++] = fullfile;
+		int z;
+		int toAdd = 0;
+		for(z = 0; z < arraynumber; ++z){
+			if(!strcmp(array[z], fullfile)) toAdd = 1;
+		}
+		if(toAdd == 0) array[arraynumber++] = fullfile;
 	}
 	}
 }
@@ -227,13 +232,45 @@ char ** xsh_ls(int nargs, char * args){
 		
 		if(success == 1){
 			//the current filename and extension match that of the arg so add it to array
+			int z;
+			int toAdd;
+			toAdd = 0;
+			for(z = 0; z < arraynumber; ++z){
 
-			array[arraynumber++] = fullfile;
+				if(!strcmp(array[z], fullfile)){			 
+				toAdd = 1;
+				break;
+				}
+			}
+			if(toAdd == 0){
+			 array[arraynumber++] = fullfile;
+			}
 		}
 	}
 	}
 	}
 }
+/*
+int x,y,finish;
+finish = arraynumber;
+for(x = 0; x < finish; x++){
+char * current = array[x];
+	for(y = 0; y < finish; y++){
+		char * compare = array[y];
+		if(!strcmp(current,compare) && x != y){
+			int u;
+			for(u = y; u < finish; u++){
+				if(u == finish - 1){
+					array[u] = "";
+					arraynumber--;
+				}
+				else{
+					array[u] = array[u+1];
+				}
+			}
+		}
+	}
+}*/
 
 		return array;
 
