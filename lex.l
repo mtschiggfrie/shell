@@ -16,7 +16,7 @@ char * remove_quotes(char * arg){
 %}
 
 %%
-\"[ -.&\$|A-Za-z_0-9\\\/\><]*\"           { yylval = remove_quotes(strdup(yytext)); return QUOTE_TOK; }
+\"[ -.&\$|A-Za-z_0-9\\\/\><?]*\"           { yylval = remove_quotes(strdup(yytext)); return QUOTE_TOK; }
 ^\$\{[ A-Za-z_0-9\\\/]*\}	 { yylval = strdup(yytext); return ENVVAR_TOK;}
 "\>"                             { return INTO_TOK;  }
 "<"                              { return FROM_TOK;  }
@@ -24,8 +24,7 @@ char * remove_quotes(char * arg){
 "&"                              { return BACKGROUND_TOK; }
 "2"                              { return STDERR_TOK;  }
 "&1"                             { return STDOUT_TOK;  }
-[A-Za-z0-9]+"\."[A-Za-z_0-9]+    { yylval = strdup(yytext); return OTHER_TOK;  }
-[-.*_A-Za-z0-9\\\/]+             { yylval = strdup(yytext); return OTHER_TOK;  }
+[-.*_A-Za-z0-9\\\/?]+             { yylval = strdup(yytext); return OTHER_TOK;  }
 \n                               { return EOF_TOK;  }
 [ \t]                          	 {}
 .                                {}

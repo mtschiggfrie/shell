@@ -48,8 +48,11 @@ char ** xsh_ls(int nargs, char * args){
 	int index;
 
 	if(strrchr(args,'.') == NULL){
-		char * word = args;
-		index = 0;
+
+	char * word = args;
+	index = 0;
+
+
 	for(; index < count; ++index){
 	//each file in the current directory
 
@@ -61,13 +64,13 @@ char ** xsh_ls(int nargs, char * args){
 	strcpy(fullfile,newfile);
 	char * currentfile = newfile;	
 
-
 	
 	int boolNumber = 1;//changes to 0 when need to break from while loop
 	if(currentfile[0] == '.') boolNumber = 0;
 	int success = 0;//0 means not a filename match/1 filename matched
 	int i = 0;//i and j will go through each char in filename from arg and the current filename
 	int j = 0;
+
 	while(boolNumber == 1){
 		if((word[i] == '\0' || word[i+1] == '\0') && currentfile[j] == '\0'){
 			//this is called when both reach the end of the string
@@ -77,6 +80,17 @@ char ** xsh_ls(int nargs, char * args){
 			success = 1;
 		}
 		else if(word[i] == '\0' || currentfile[j] == '\0'){
+				if(word[i+1] == '/' && word[i+2] == '\0'){
+					//this part is used when we need to directories
+					struct stat filestatus;
+					char* filepath = malloc(50);
+					strcpy(filepath,path);
+					strcat(filepath,"/");
+					strcat(filepath,currentfile);
+
+					stat(filepath,&filestatus);
+					if(S_ISDIR(filestatus.st_mode)) success = 1;
+				}
 			//if one reaches the end before the other, obviously no match... break while
 			boolNumber = 0;
 		}
@@ -91,6 +105,9 @@ char ** xsh_ls(int nargs, char * args){
 				//if the char after * matches the current char, move past the *
 				//for exp...  *mp    hmp  obviously * only needed for h
 				i = i + 2;
+			}		
+			else if(word[i+1] == '/' && currentfile[j] == '.' && word[i+2] == '\0'){
+				boolNumber = 0;
 			}
 			j++;
 		}
@@ -194,6 +211,13 @@ char ** xsh_ls(int nargs, char * args){
 						i = i + 2;
 					}
 				}
+				else if(extension[i+1] == currentextension[j+1]){
+					i++;
+				}
+				j++;
+			}
+			else if(extension[i] == '?'){
+				i++;
 				j++;
 			}
 			else if(extension[i] != currentextension[j]){
